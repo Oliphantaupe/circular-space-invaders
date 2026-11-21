@@ -12,9 +12,12 @@ class Player:
         self.health = self.max_health
         self.radius = 20                    # hitbox for enemy contact
         # Shot stats: copied onto each projectile when fired, modified by upgrades.
-        self.damage = 1
-        self.shot_speed = 600               # pixels / second
+        self.damage = 10
+        self.shot_speed = 200               # pixels / second
         self.shot_cooldown = 0.2            # seconds between shots
+        self.projectile_count = 1           # projectiles per shot, fanned around the facing direction
+        self.projectile_gap = 10            # degrees between two projectiles of the same shot
+        self.defense = 0                    # flat reduction of contact damage (min 1 damage taken)
         self.cooldown_timer = 0.0
         self.upgrades: list[str] = []       # keys of content.UPGRADES picked so far
 
@@ -70,3 +73,4 @@ class Game:
         self.score = 0
         self.elapsed_time = 0.0             # stops at game over
         self.show_debug_grid = False
+        self.upgrade_choices: list[str] = []    # keys of content.UPGRADES offered on the cycle summary
