@@ -107,22 +107,57 @@ WAVE_END_HEAL = 0.20                # fraction of max health restored when a wav
 
 UPGRADES_OFFERED = 3                # upgrades to choose from, picked with keys 1/2/3
 
-# Upgrades: "stat" is a Player attribute. "add" adds "amount" to it, "multiply" multiplies it by "amount".
-# Small upgrade after each wave, from a popup while the game keeps running.
+# Upgrades: each one has a label and a list of effects.
+# An effect changes one Player stat: "add" adds "amount" to it, "multiply" multiplies it by "amount".
+# Player stats: max_health, damage, defense, projectile_count, projectile_gap, shot_speed,
+# shot_cooldown (lower = faster fire), movement_speed.
+
+# Small upgrade after each wave, from a popup at the bottom of the screen.
 WAVE_UPGRADES = {
-    "health": {"label": "Max health +10%", "stat": "max_health", "operation": "multiply", "amount": 1.10},
-    "attack": {"label": "Damage +15%", "stat": "damage", "operation": "multiply", "amount": 1.15},
-    "defense": {"label": "Defense +1", "stat": "defense", "operation": "add", "amount": 1},
-    "attack_speed": {"label": "Fire rate +10%", "stat": "shot_cooldown", "operation": "multiply", "amount": 1 / 1.10},
-    "move_speed": {"label": "Move speed +10%", "stat": "movement_speed", "operation": "multiply", "amount": 1.10},
+    "health": {"label": "Max health +10%", "effects": [
+        {"stat": "max_health", "operation": "multiply", "amount": 1.10},
+    ]},
+    "attack": {"label": "Damage +15%", "effects": [
+        {"stat": "damage", "operation": "multiply", "amount": 1.15},
+    ]},
+    "defense": {"label": "Defense +1", "effects": [
+        {"stat": "defense", "operation": "add", "amount": 1},
+    ]},
+    "attack_speed": {"label": "Fire rate +10%", "effects": [
+        {"stat": "shot_cooldown", "operation": "multiply", "amount": 1 / 1.10},
+    ]},
+    "move_speed": {"label": "Move speed +10%", "effects": [
+        {"stat": "movement_speed", "operation": "multiply", "amount": 1.10},
+    ]},
 }
 
-# Big upgrade at the end of each cycle, on the paused cycle summary screen.
+# Big upgrade at the end of each cycle, on the cycle summary screen.
 CYCLE_UPGRADES = {
-    "health": {"label": "Max health +30%", "stat": "max_health", "operation": "multiply", "amount": 1.30},
-    "attack": {"label": "Damage +40%", "stat": "damage", "operation": "multiply", "amount": 1.40},
-    "defense": {"label": "Defense +3", "stat": "defense", "operation": "add", "amount": 3},
-    "multishot": {"label": "Multishot +1", "stat": "projectile_count", "operation": "add", "amount": 1},
-    "attack_speed": {"label": "Fire rate +30%", "stat": "shot_cooldown", "operation": "multiply", "amount": 1 / 1.30},
-    "move_speed": {"label": "Move speed +30%", "stat": "movement_speed", "operation": "multiply", "amount": 1.30},
+    "shotgunner": {"label": "Shotgunner: +2 projectiles, wider spread, slower shots", "effects": [
+        {"stat": "projectile_count", "operation": "add", "amount": 2},
+        {"stat": "projectile_gap", "operation": "add", "amount": 5},
+        {"stat": "shot_speed", "operation": "multiply", "amount": 0.8},
+    ]},
+    "high_caliber": {"label": "High Caliber: damage x2, fire rate -33%", "effects": [
+        {"stat": "damage", "operation": "multiply", "amount": 2.0},
+        {"stat": "shot_cooldown", "operation": "multiply", "amount": 1.5},
+    ]},
+    "health": {"label": "Max health +30%", "effects": [
+        {"stat": "max_health", "operation": "multiply", "amount": 1.30},
+    ]},
+    "attack": {"label": "Damage +40%", "effects": [
+        {"stat": "damage", "operation": "multiply", "amount": 1.40},
+    ]},
+    "defense": {"label": "Defense +3", "effects": [
+        {"stat": "defense", "operation": "add", "amount": 3},
+    ]},
+    "multishot": {"label": "Multishot +1", "effects": [
+        {"stat": "projectile_count", "operation": "add", "amount": 1},
+    ]},
+    "attack_speed": {"label": "Fire rate +30%", "effects": [
+        {"stat": "shot_cooldown", "operation": "multiply", "amount": 1 / 1.30},
+    ]},
+    "move_speed": {"label": "Move speed +30%", "effects": [
+        {"stat": "movement_speed", "operation": "multiply", "amount": 1.30},
+    ]},
 }

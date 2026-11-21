@@ -39,7 +39,7 @@ python main.py
 |---|---|
 | `main.py` | Entry point: game loop and input handling |
 | `game/content.py` | Game design data: player and enemy classes (`Ship` -> `Player` and `Enemy` -> `BasicEnemy`, `EliteEnemy`, `BossEnemy`, values only), waves, cycle scaling, upgrades |
-| `game/classes.py` | Runtime state: `Projectile`, `WaveManager`, `Game` |
+| `game/game_state.py` | Runtime state: `Projectile`, `WaveManager`, `Game` |
 | `game/game_logic.py` | All behaviour: waves and cycles, upgrades, movement, shooting, collisions |
 | `game/rendering.py` | Everything drawn on screen |
 

@@ -4,7 +4,7 @@ import random
 import pygame
 from pygame.math import Vector2
 
-from . import classes
+from . import game_state
 from . import content
 
 MOVE_KEYS = {                       # key -> movement direction (Z/Q/S/D on AZERTY, plus arrows)
@@ -73,15 +73,20 @@ def random_upgrades(upgrades):
     return random.sample(list(upgrades.values()), content.UPGRADES_OFFERED)
 
 
-def apply_upgrade(player, upgrade):
-    old_value = getattr(player, upgrade["stat"])
-    if upgrade["operation"] == "multiply":
-        new_value = old_value * upgrade["amount"]
+def apply_effect(player, effect):
+    old_value = getattr(player, effect["stat"])
+    if effect["operation"] == "multiply":
+        new_value = old_value * effect["amount"]
     else:
-        new_value = old_value + upgrade["amount"]
-    setattr(player, upgrade["stat"], new_value)
-    if upgrade["stat"] == "max_health":
+        new_value = old_value + effect["amount"]
+    setattr(player, effect["stat"], new_value)
+    if effect["stat"] == "max_health":
         heal(player, new_value - old_value)     # heal the health gained
+
+
+def apply_upgrade(player, upgrade):
+    for effect in upgrade["effects"]:
+        apply_effect(player, effect)
     player.upgrades.append(upgrade["label"])
 
 
@@ -122,7 +127,7 @@ def shoot(player):
         offset = (i - (player.projectile_count - 1) / 2) * player.projectile_gap
         direction = player.direction.rotate(offset)
         muzzle = player.pos + direction * player.radius
-        projectiles.append(classes.Projectile(muzzle, direction, player.damage, player.shot_speed))
+        projectiles.append(game_state.Projectile(muzzle, direction, player.damage, player.shot_speed))
     player.cooldown_timer = player.shot_cooldown
     return projectiles
 

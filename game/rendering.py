@@ -1,6 +1,4 @@
 """Everything drawn on screen."""
-import math
-
 import pygame
 from pygame.math import Vector2
 
@@ -9,19 +7,10 @@ from .game_logic import create_enemy
 
 BG_COLOR = (10, 10, 25)
 TEXT_COLOR = (220, 220, 230)
-ORBIT_COLOR = (60, 60, 90)
 GRID_COLOR = (35, 35, 60)
 UPGRADE_COLOR = (255, 240, 120)
 GRID_RING_STEP = 100        # pixels between debug rings
 GRID_SECTORS = 12           # debug angle sectors (30 degrees each)
-
-
-def draw_dashed_circle(surface, color, center, radius, dashes=60):
-    step = 2 * math.pi / dashes
-    for i in range(0, dashes, 2):
-        start = center + Vector2(math.cos(i * step), math.sin(i * step)) * radius
-        end = center + Vector2(math.cos((i + 1) * step), math.sin((i + 1) * step)) * radius
-        pygame.draw.line(surface, color, start, end, 1)
 
 
 def draw_debug_grid(surface, center, max_radius, font):
@@ -40,10 +29,8 @@ def draw_debug_grid(surface, center, max_radius, font):
 def draw_world(game, small_font):
     screen = game.screen
     player = game.player
-    spawn_radius = content.SPAWN_RADIUS
     if game.show_debug_grid:
-        draw_debug_grid(screen, player.pos, spawn_radius, small_font)
-    draw_dashed_circle(screen, ORBIT_COLOR, player.pos, spawn_radius)
+        draw_debug_grid(screen, player.pos, content.SPAWN_RADIUS, small_font)
 
     tip = player.pos + player.direction * (player.radius + 10)
     left = player.pos + player.direction.rotate(140) * player.radius

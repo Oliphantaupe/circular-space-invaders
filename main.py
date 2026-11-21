@@ -6,7 +6,7 @@ R restarts after game over, F1 toggles the debug grid.
 """
 import pygame
 
-from game import classes
+from game import game_state
 from game import game_logic
 from game import rendering
 
@@ -18,7 +18,7 @@ def handle_keydown(game, key):
     if key == pygame.K_F1:
         game.show_debug_grid = not game.show_debug_grid
     elif key == pygame.K_r and game.state == "game_over":
-        return classes.Game()
+        return game_state.Game()
     elif key in UPGRADE_KEYS and game.state == "cycle_summary":
         game_logic.start_next_cycle(game, UPGRADE_KEYS[key])
     elif key in UPGRADE_KEYS and game.state == "wave_upgrade":
@@ -34,7 +34,7 @@ def main():
         "normal": pygame.font.Font(None, 28),
         "big": pygame.font.Font(None, 72),
     }
-    game = classes.Game()
+    game = game_state.Game()
     running = True
     while running:
         dt = game.clock.tick(60) / 1000
