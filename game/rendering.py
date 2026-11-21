@@ -4,8 +4,8 @@ import math
 import pygame
 from pygame.math import Vector2
 
+from . import classes
 from . import content
-from .game_logic import enemy_stats
 
 BG_COLOR = (10, 10, 25)
 TEXT_COLOR = (220, 220, 230)
@@ -47,7 +47,7 @@ def draw_world(game, small_font):
     tip = player.pos + player.direction * (player.radius + 10)
     left = player.pos + player.direction.rotate(140) * player.radius
     right = player.pos + player.direction.rotate(-140) * player.radius
-    pygame.draw.polygon(screen, (80, 200, 255), [tip, left, right])
+    pygame.draw.polygon(screen, player.color, [tip, left, right])
 
     for projectile in game.projectiles:
         pygame.draw.circle(screen, (255, 240, 120), projectile.pos, projectile.radius)
@@ -85,11 +85,11 @@ def draw_overlay(surface):
 def draw_cycle_summary(game, font, big_font):
     cycle = game.wave_manager.cycle
     lines = [(f"Cycle {cycle} complete", big_font, (120, 230, 140)), ("Enemies next cycle:", font, TEXT_COLOR)]
-    for kind in content.ENEMY_TYPES:
-        current, upcoming = enemy_stats(kind, cycle), enemy_stats(kind, cycle + 1)
+    for name, enemy_class in classes.ENEMY_CLASSES.items():
+        current, upcoming = enemy_class(Vector2(), cycle), enemy_class(Vector2(), cycle + 1)
         lines.append((
-            f"{kind.capitalize()}: health {current['health']} -> {upcoming['health']}, "
-            f"damage {current['contact_damage']} -> {upcoming['contact_damage']}",
+            f"{name.capitalize()}: health {current.max_health} -> {upcoming.max_health}, "
+            f"damage {current.contact_damage} -> {upcoming.contact_damage}",
             font, TEXT_COLOR,
         ))
     lines.append(("Choose an upgrade:", font, TEXT_COLOR))

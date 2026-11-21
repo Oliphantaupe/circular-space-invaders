@@ -35,12 +35,16 @@ python main.py
 | File | Contents |
 |---|---|
 | `main.py` | Entry point: game loop and input handling |
-| `game/classes.py` | Game entities: `Player`, `Projectile`, `Enemy`, `WaveManager`, `Game` |
-| `game/content.py` | Game design data: enemy types, waves, cycle scaling, upgrades |
-| `game/game_logic.py` | Behaviour: waves and cycles, upgrades, movement, collisions |
+| `game/classes.py` | Game entities and their behaviour: `Ship` (base) -> `Player` and `Enemy` -> `BasicEnemy`, `EliteEnemy`, `BossEnemy`; `Projectile`, `WaveManager`, `Game` |
+| `game/content.py` | Game design data: waves, cycle scaling, upgrades |
+| `game/game_logic.py` | Game flow: waves and cycles, upgrades, input, collisions |
 | `game/rendering.py` | Everything drawn on screen |
 
-To tune the game (enemy stats, wave composition, scaling, upgrades), edit `game/content.py`. You don't need to touch the logic.
+To tune the game:
+- Player and enemy stats: class attributes at the top of each class in `game/classes.py`.
+- Waves, cycle scaling, upgrades: `game/content.py`.
+
+To add an enemy type, subclass `Enemy` in `game/classes.py`, set its stats, override `update()` if it behaves differently, register it in `ENEMY_CLASSES` and use its name in `content.WAVES`.
 
 ## License
 

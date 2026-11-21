@@ -1,16 +1,11 @@
-"""Game design data: enemy types, waves, cycle scaling and upgrades.
+"""Game design data: waves, cycle scaling and upgrades.
 
 Tune the game here without touching the logic.
+Player and enemy stats are class attributes in classes.py.
 """
 
-# "score" is multiplied by the cycle number when the enemy is killed.
-ENEMY_TYPES = {
-    "enemy": {"health": 10, "speed": 10, "contact_damage": 10, "radius": 15, "score": 10, "color": "red"},
-    "elite": {"health": 25, "speed": 8, "contact_damage": 20, "radius": 25, "score": 30, "color": "orange"},
-    "boss": {"health": 100, "speed": 6, "contact_damage": 60, "radius": 50, "score": 200, "color": "purple"},
-}
-
 # One cycle = all these waves in order. The game then starts the next, harder cycle.
+# Keys are names from classes.ENEMY_CLASSES.
 WAVES = [
     {"enemy": 5},
     {"enemy": 7, "elite": 1},
