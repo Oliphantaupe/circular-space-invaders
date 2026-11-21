@@ -3,28 +3,36 @@
 Tune the game here without touching the logic.
 """
 
+# "score" is multiplied by the cycle number when the enemy is killed.
 ENEMY_TYPES = {
-    "enemy": {"health": 1, "speed": 60, "contact_damage": 10, "radius": 14, "score": 10, "color": (230, 70, 90)},
-    "elite": {"health": 3, "speed": 50, "contact_damage": 20, "radius": 18, "score": 30, "color": (240, 160, 60)},
-    "boss": {"health": 15, "speed": 35, "contact_damage": 50, "radius": 30, "score": 200, "color": (180, 80, 230)},
+    "enemy": {"health": 10, "speed": 10, "contact_damage": 10, "radius": 15, "score": 10, "color": "red"},
+    "elite": {"health": 25, "speed": 8, "contact_damage": 20, "radius": 25, "score": 30, "color": "orange"},
+    "boss": {"health": 100, "speed": 6, "contact_damage": 60, "radius": 50, "score": 200, "color": "purple"},
 }
 
 # One cycle = all these waves in order. The game then starts the next, harder cycle.
 WAVES = [
-    {"enemy": 1},
-    {"enemy": 2},
-    {"enemy": 2, "elite": 1},
-    {"enemy": 3, "elite": 1},
-    {"enemy": 2, "boss": 1},
+    {"enemy": 5},
+    {"enemy": 7, "elite": 1},
+    {"enemy": 6, "elite": 2},
+    {"enemy": 8, "elite": 3},
+    {"enemy": 5, "elite": 2, "boss": 1},
 ]
 
-# Placeholder scaling between cycles, the final formula is not decided yet.
-EXTRA_ENEMIES_PER_CYCLE = 1         # added to every count of every wave, per cycle
-HEALTH_GROWTH_PER_CYCLE = 0.5       # +50% of base health per cycle
-DAMAGE_GROWTH_PER_CYCLE = 0.25      # +25% of base contact damage per cycle
+# Scaling between cycles: wave counts are multiplied by the cycle number,
+# enemy health and contact damage by STAT_GROWTH_PER_CYCLE ** (cycle - 1).
+STAT_GROWTH_PER_CYCLE = 1.5
 
-# Picked on the cycle summary screen. "stat" is a Player attribute, "amount" is added to it.
+WAVE_END_HEAL = 0.20                # fraction of max health restored when a wave is cleared
+
+UPGRADES_OFFERED = 3                # random upgrades shown on the cycle summary screen
+
+# "stat" is a Player attribute. "add" adds "amount" to it, "multiply" multiplies it by "amount".
 UPGRADES = {
-    "damage": {"label": "Damage +1", "stat": "damage", "amount": 1},
-    "shot_speed": {"label": "Shot speed +150", "stat": "shot_speed", "amount": 150},
+    "health": {"label": "Max health +10%", "stat": "max_health", "operation": "multiply", "amount": 1.10},
+    "attack": {"label": "Damage +15%", "stat": "damage", "operation": "multiply", "amount": 1.15},
+    "defense": {"label": "Defense +1", "stat": "defense", "operation": "add", "amount": 1},
+    "multishot": {"label": "Multishot +1", "stat": "projectile_count", "operation": "add", "amount": 1},
+    "attack_speed": {"label": "Fire rate +10%", "stat": "shot_cooldown", "operation": "multiply", "amount": 1 / 1.10},
+    "rotation_speed": {"label": "Rotation speed +10%", "stat": "rotation_speed", "operation": "multiply", "amount": 1.10},
 }

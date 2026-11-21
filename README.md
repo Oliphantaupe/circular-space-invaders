@@ -21,14 +21,14 @@ python main.py
 |---|---|
 | Left / Right or A / D | Rotate |
 | Space | Shoot |
-| 1 / 2 | Pick an upgrade at the end of a cycle |
+| 1 / 2 / 3 | Pick an upgrade at the end of a cycle |
 | R | Restart after game over |
 | F1 | Toggle the debug grid (distance rings and angles around the player) |
 
 ## How it plays
 
-- A **cycle** is every wave in `content.WAVES`, played in order. When a cycle ends, a summary screen shows how enemy health and damage will grow, and you pick an upgrade. Then the next, harder cycle starts. Cycles never end.
-- **Upgrades** change the player's shot stats. Each projectile copies those stats when it is fired.
+- A **cycle** is every wave in `content.WAVES`, played in order. When a cycle ends, a summary screen shows how enemy health and damage will grow, and you pick one of 3 random upgrades. Then the next, harder cycle starts. Cycles never end.
+- **Upgrades** change the player's stats (health, damage, defense, multishot, fire rate, rotation speed). Each projectile copies the shot stats when it is fired.
 
 ## Project structure
 

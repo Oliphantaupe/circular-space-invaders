@@ -60,7 +60,7 @@ def draw_hud(game, font):
     wave_manager = game.wave_manager
     wave_number = min(wave_manager.wave_index + 1, len(content.WAVES))
     hud = (
-        f"Health {player.health}/{player.max_health}   Score {game.score}   "
+        f"Health {player.health:.0f}/{player.max_health:.0f}   Score {game.score}   "
         f"Time {game.elapsed_time:.1f}s   Cycle {wave_manager.cycle}   "
         f"Wave {wave_number}/{len(content.WAVES)}"
     )
@@ -93,8 +93,8 @@ def draw_cycle_summary(game, font, big_font):
             font, TEXT_COLOR,
         ))
     lines.append(("Choose an upgrade:", font, TEXT_COLOR))
-    for number, upgrade in enumerate(content.UPGRADES.values(), start=1):
-        lines.append((f"{number} - {upgrade['label']}", font, (255, 240, 120)))
+    for number, upgrade_key in enumerate(game.upgrade_choices, start=1):
+        lines.append((f"{number} - {content.UPGRADES[upgrade_key]['label']}", font, (255, 240, 120)))
     draw_overlay(game.screen)
     draw_centered_lines(game.screen, lines, top=180)
 

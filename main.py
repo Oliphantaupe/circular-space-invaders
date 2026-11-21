@@ -1,16 +1,15 @@
 """Entry point: game loop and input handling.
 
-Controls: Left/Right or A/D rotate, Space shoots, 1/2 pick an upgrade after a cycle,
+Controls: Left/Right or A/D rotate, Space shoots, 1/2/3 pick an upgrade after a cycle,
 R restarts after game over, F1 toggles the debug grid.
 """
 import pygame
 
 from game import classes
-from game import content
 from game import game_logic
 from game import rendering
 
-UPGRADE_KEYS = {pygame.K_1: 0, pygame.K_2: 1}   # key -> index in content.UPGRADES
+UPGRADE_KEYS = {pygame.K_1: 0, pygame.K_2: 1, pygame.K_3: 2}   # key -> index in game.upgrade_choices
 
 
 def handle_keydown(game, key):
@@ -20,8 +19,7 @@ def handle_keydown(game, key):
     elif key == pygame.K_r and game.state == "game_over":
         return classes.Game()
     elif key in UPGRADE_KEYS and game.state == "cycle_summary":
-        upgrade_key = list(content.UPGRADES)[UPGRADE_KEYS[key]]
-        game_logic.start_next_cycle(game, upgrade_key)
+        game_logic.start_next_cycle(game, game.upgrade_choices[UPGRADE_KEYS[key]])
     return game
 
 
