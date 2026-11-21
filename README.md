@@ -19,32 +19,33 @@ python main.py
 
 | Key | Action |
 |---|---|
-| Left / Right or A / D | Rotate |
-| Space | Shoot |
-| 1 / 2 / 3 | Pick an upgrade at the end of a cycle |
+| Z / Q / S / D or arrows | Move |
+| Mouse | Aim |
+| Left click or Space | Shoot |
+| 1 / 2 / 3 | Pick an upgrade (after a wave or a cycle) |
 | R | Restart after game over |
 | F1 | Toggle the debug grid (distance rings and angles around the player) |
 
 ## How it plays
 
-- A **cycle** is every wave in `content.WAVES`, played in order. When a cycle ends, a summary screen shows how enemy health and damage will grow, and you pick one of 3 random upgrades. Then the next, harder cycle starts. Cycles never end.
-- **Upgrades** change the player's stats (health, damage, defense, multishot, fire rate, rotation speed). Each projectile copies the shot stats when it is fired.
+- Enemies spawn on a ring around the player and fly straight at them.
+- A **cycle** is every wave in `content.WAVES`, played in order. When a cycle ends, a summary screen shows how enemy health and damage will grow, and you pick one of 3 random big upgrades. Then the next, harder cycle starts. Cycles never end.
+- After each other wave, the game pauses and a small popup at the bottom offers 3 random small upgrades: press 1, 2 or 3.
+- **Upgrades** change the player's stats (health, damage, defense, multishot, fire rate, move speed). Each projectile copies the shot stats when it is fired.
 
 ## Project structure
 
 | File | Contents |
 |---|---|
 | `main.py` | Entry point: game loop and input handling |
-| `game/classes.py` | Game entities and their behaviour: `Ship` (base) -> `Player` and `Enemy` -> `BasicEnemy`, `EliteEnemy`, `BossEnemy`; `Projectile`, `WaveManager`, `Game` |
-| `game/content.py` | Game design data: waves, cycle scaling, upgrades |
-| `game/game_logic.py` | Game flow: waves and cycles, upgrades, input, collisions |
+| `game/content.py` | Game design data: player and enemy classes (`Ship` -> `Player` and `Enemy` -> `BasicEnemy`, `EliteEnemy`, `BossEnemy`, values only), waves, cycle scaling, upgrades |
+| `game/classes.py` | Runtime state: `Projectile`, `WaveManager`, `Game` |
+| `game/game_logic.py` | All behaviour: waves and cycles, upgrades, movement, shooting, collisions |
 | `game/rendering.py` | Everything drawn on screen |
 
-To tune the game:
-- Player and enemy stats: class attributes at the top of each class in `game/classes.py`.
-- Waves, cycle scaling, upgrades: `game/content.py`.
+To tune the game (player and enemy stats, waves, scaling, upgrades), edit `game/content.py`. You don't need to touch the logic.
 
-To add an enemy type, subclass `Enemy` in `game/classes.py`, set its stats, override `update()` if it behaves differently, register it in `ENEMY_CLASSES` and use its name in `content.WAVES`.
+To add an enemy type, subclass `Enemy` in `game/content.py`, set its values, add it to `ENEMY_CLASSES` and use its name in `WAVES`.
 
 ## License
 

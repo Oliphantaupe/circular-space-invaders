@@ -4,13 +4,14 @@ import math
 import pygame
 from pygame.math import Vector2
 
-from . import classes
 from . import content
+from .game_logic import create_enemy
 
 BG_COLOR = (10, 10, 25)
 TEXT_COLOR = (220, 220, 230)
 ORBIT_COLOR = (60, 60, 90)
 GRID_COLOR = (35, 35, 60)
+UPGRADE_COLOR = (255, 240, 120)
 GRID_RING_STEP = 100        # pixels between debug rings
 GRID_SECTORS = 12           # debug angle sectors (30 degrees each)
 
@@ -39,7 +40,7 @@ def draw_debug_grid(surface, center, max_radius, font):
 def draw_world(game, small_font):
     screen = game.screen
     player = game.player
-    spawn_radius = game.wave_manager.spawn_radius
+    spawn_radius = content.SPAWN_RADIUS
     if game.show_debug_grid:
         draw_debug_grid(screen, player.pos, spawn_radius, small_font)
     draw_dashed_circle(screen, ORBIT_COLOR, player.pos, spawn_radius)
@@ -67,6 +68,15 @@ def draw_hud(game, font):
     game.screen.blit(font.render(hud, True, TEXT_COLOR), (12, 10))
 
 
+def draw_wave_upgrade_popup(game, font):
+    """Discreet line at the bottom of the screen, the game is paused until a pick."""
+    choices = "   ".join(f"{number} - {upgrade['label']}" for number, upgrade in enumerate(game.wave_upgrade_choices, start=1))
+    text = f"Upgrade:   {choices}"
+    rendered = font.render(text, True, UPGRADE_COLOR)
+    screen_rect = game.screen.get_rect()
+    game.screen.blit(rendered, rendered.get_rect(midbottom=(screen_rect.centerx, screen_rect.bottom - 12)))
+
+
 def draw_centered_lines(surface, lines, top):
     """lines: list of (text, font, color), drawn centered horizontally from y = top."""
     center_x = surface.get_rect().centerx
@@ -85,16 +95,16 @@ def draw_overlay(surface):
 def draw_cycle_summary(game, font, big_font):
     cycle = game.wave_manager.cycle
     lines = [(f"Cycle {cycle} complete", big_font, (120, 230, 140)), ("Enemies next cycle:", font, TEXT_COLOR)]
-    for name, enemy_class in classes.ENEMY_CLASSES.items():
-        current, upcoming = enemy_class(Vector2(), cycle), enemy_class(Vector2(), cycle + 1)
+    for name in content.ENEMY_CLASSES:
+        current, upcoming = create_enemy(name, Vector2(), cycle), create_enemy(name, Vector2(), cycle + 1)
         lines.append((
             f"{name.capitalize()}: health {current.max_health} -> {upcoming.max_health}, "
             f"damage {current.contact_damage} -> {upcoming.contact_damage}",
             font, TEXT_COLOR,
         ))
-    lines.append(("Choose an upgrade:", font, TEXT_COLOR))
-    for number, upgrade_key in enumerate(game.upgrade_choices, start=1):
-        lines.append((f"{number} - {content.UPGRADES[upgrade_key]['label']}", font, (255, 240, 120)))
+    lines.append(("Choose a cycle upgrade:", font, TEXT_COLOR))
+    for number, upgrade in enumerate(game.cycle_upgrade_choices, start=1):
+        lines.append((f"{number} - {upgrade['label']}", font, UPGRADE_COLOR))
     draw_overlay(game.screen)
     draw_centered_lines(game.screen, lines, top=180)
 
@@ -109,7 +119,9 @@ def draw(game, fonts):
     game.screen.fill(BG_COLOR)
     draw_world(game, fonts["small"])
     draw_hud(game, fonts["normal"])
-    if game.state == "cycle_summary":
+    if game.state == "wave_upgrade":
+        draw_wave_upgrade_popup(game, fonts["normal"])
+    elif game.state == "cycle_summary":
         draw_cycle_summary(game, fonts["normal"], fonts["big"])
     elif game.state == "game_over":
         draw_game_over(game, fonts["normal"], fonts["big"])

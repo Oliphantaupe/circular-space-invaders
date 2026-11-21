@@ -1,6 +1,7 @@
 """Entry point: game loop and input handling.
 
-Controls: Left/Right or A/D rotate, Space shoots, 1/2/3 pick an upgrade after a cycle,
+Controls: Z/Q/S/D or arrows move, the mouse aims, left click or Space shoots,
+1/2/3 pick an upgrade after a wave or a cycle,
 R restarts after game over, F1 toggles the debug grid.
 """
 import pygame
@@ -9,7 +10,7 @@ from game import classes
 from game import game_logic
 from game import rendering
 
-UPGRADE_KEYS = {pygame.K_1: 0, pygame.K_2: 1, pygame.K_3: 2}   # key -> index in game.upgrade_choices
+UPGRADE_KEYS = {pygame.K_1: 0, pygame.K_2: 1, pygame.K_3: 2}   # key -> index in the offered upgrades
 
 
 def handle_keydown(game, key):
@@ -19,7 +20,9 @@ def handle_keydown(game, key):
     elif key == pygame.K_r and game.state == "game_over":
         return classes.Game()
     elif key in UPGRADE_KEYS and game.state == "cycle_summary":
-        game_logic.start_next_cycle(game, game.upgrade_choices[UPGRADE_KEYS[key]])
+        game_logic.start_next_cycle(game, UPGRADE_KEYS[key])
+    elif key in UPGRADE_KEYS and game.state == "wave_upgrade":
+        game_logic.pick_wave_upgrade(game, UPGRADE_KEYS[key])
     return game
 
 
