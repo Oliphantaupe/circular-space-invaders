@@ -18,29 +18,29 @@ MOVE_KEYS = {                       # key -> movement direction (Z/Q/S/D on AZER
 # --- Ships -----------------------------------------------------------------
 
 def take_damage(ship, amount):
-    ship.health = max(0, ship.health - amount)
+    ship.health_point = max(0, ship.health_point - amount)
 
 
 def damage_player(player, amount):
-    take_damage(player, max(1, amount - player.defense))
+    take_damage(player, max(1, amount - player.defense_amount))
 
 
 def heal(ship, amount):
-    ship.health = min(ship.max_health, ship.health + amount)
+    ship.health_point = min(ship.max_health_point, ship.health_point + amount)
 
 
 def collides(first, second):
-    """Anything with a pos and a radius (ship or projectile)."""
-    return first.pos.distance_to(second.pos) < first.radius + second.radius
+    """Anything with a position and a size (ship or projectile)."""
+    return first.position.distance_to(second.position) < first.size + second.size
 
 
-def create_enemy(name, pos, cycle):
+def create_enemy(name, position, cycle):
     """Enemy of content.ENEMY_CLASSES[name], with its stats scaled for this cycle."""
-    enemy = content.ENEMY_CLASSES[name](pos)
+    enemy = content.ENEMY_CLASSES[name](position)
     growth = content.STAT_GROWTH_PER_CYCLE ** (cycle - 1)
-    enemy.max_health = round(enemy.max_health * growth)
-    enemy.health = enemy.max_health
-    enemy.contact_damage = round(enemy.contact_damage * growth)
+    enemy.max_health_point = round(enemy.max_health_point * growth)
+    enemy.health_point = enemy.max_health_point
+    enemy.attack_damage = round(enemy.attack_damage * growth)
     enemy.score = enemy.score * cycle
     return enemy
 
@@ -54,7 +54,7 @@ def wave_enemy_counts(wave_index, cycle):
 def start_next_wave(game):
     wave_manager = game.wave_manager
     if wave_manager.wave_index >= 0:    # a wave was just cleared (-1 means the cycle is starting)
-        heal(game.player, content.WAVE_END_HEAL * game.player.max_health)
+        heal(game.player, content.WAVE_END_HEAL * game.player.max_health_point)
     wave_manager.wave_index += 1
     if wave_manager.wave_index == len(content.WAVES):
         game.cycle_upgrade_choices = random_upgrades(content.CYCLE_UPGRADES)
@@ -80,7 +80,7 @@ def apply_effect(player, effect):
     else:
         new_value = old_value + effect["amount"]
     setattr(player, effect["stat"], new_value)
-    if effect["stat"] == "max_health":
+    if effect["stat"] == "max_health_point":
         heal(player, new_value - old_value)     # heal the health gained
 
 
@@ -113,22 +113,22 @@ def update_wave_manager(game, dt):
     wave_manager.spawn_timer -= dt
     if wave_manager.spawn_timer <= 0:
         spawn_angle = random.uniform(0, 360)
-        spawn_pos = game.player.pos + Vector2(content.SPAWN_RADIUS, 0).rotate(spawn_angle)
-        game.enemies.append(create_enemy(wave_manager.spawn_queue.pop(), spawn_pos, wave_manager.cycle))
+        spawn_position = game.player.position + Vector2(content.SPAWN_RADIUS, 0).rotate(spawn_angle)
+        game.enemies.append(create_enemy(wave_manager.spawn_queue.pop(), spawn_position, wave_manager.cycle))
         wave_manager.spawn_timer = content.SPAWN_DELAY
 
 
 # --- Player ----------------------------------------------------------------
 
 def shoot(player):
-    """Fires projectile_count projectiles fanned around the aim direction."""
+    """Fires projectile_amount projectiles fanned around the aim direction."""
     projectiles = []
-    for i in range(player.projectile_count):
-        offset = (i - (player.projectile_count - 1) / 2) * player.projectile_gap
+    for i in range(player.projectile_amount):
+        offset = (i - (player.projectile_amount - 1) / 2) * player.projectile_spread
         direction = player.direction.rotate(offset)
-        muzzle = player.pos + direction * player.radius
-        projectiles.append(game_state.Projectile(muzzle, direction, player.damage, player.shot_speed))
-    player.cooldown_timer = player.shot_cooldown
+        muzzle = player.position + direction * player.size
+        projectiles.append(game_state.Projectile(muzzle, direction, player.attack_damage, player.projectile_speed))
+    player.cooldown_timer = player.attack_delay
     return projectiles
 
 
@@ -139,13 +139,13 @@ def move_player(player, dt, bounds):
         if keys[key]:
             movement += direction
     if movement.length() > 0:
-        player.pos += movement.normalize() * player.movement_speed * dt
-    player.pos.x = max(bounds.left + player.radius, min(bounds.right - player.radius, player.pos.x))
-    player.pos.y = max(bounds.top + player.radius, min(bounds.bottom - player.radius, player.pos.y))
+        player.position += movement.normalize() * player.movement_speed * dt
+    player.position.x = max(bounds.left + player.size, min(bounds.right - player.size, player.position.x))
+    player.position.y = max(bounds.top + player.size, min(bounds.bottom - player.size, player.position.y))
 
 
 def aim_player(player):
-    to_mouse = Vector2(pygame.mouse.get_pos()) - player.pos
+    to_mouse = Vector2(pygame.mouse.get_pos()) - player.position
     if to_mouse.length() > 0:
         player.angle = Vector2(1, 0).angle_to(to_mouse)
 
@@ -165,29 +165,30 @@ def update_player(game, dt):
 def update_projectiles(game, dt):
     bounds = game.screen.get_rect()
     for projectile in game.projectiles:
-        projectile.pos += projectile.direction * projectile.speed * dt
-        if not bounds.collidepoint(projectile.pos):
+        projectile.position += projectile.direction * projectile.speed * dt
+        if not bounds.collidepoint(projectile.position):
             projectile.alive = False
 
 
 def update_enemies(game, dt):
     for enemy in game.enemies:
-        to_player = game.player.pos - enemy.pos
+        to_player = game.player.position - enemy.position
         if to_player.length() > 0:
-            enemy.pos += to_player.normalize() * enemy.speed * dt
+            enemy.angle = Vector2(1, 0).angle_to(to_player)     # faces the player
+            enemy.position += to_player.normalize() * enemy.movement_speed * dt
 
 
 def handle_collisions(game):
     player = game.player
     for enemy in game.enemies:
         if collides(enemy, player):
-            damage_player(player, enemy.contact_damage)
-            enemy.health = 0            # enemies die on contact
+            damage_player(player, enemy.attack_damage)
+            enemy.health_point = 0            # enemies die on contact
             continue
         for projectile in game.projectiles:
             if projectile.alive and collides(enemy, projectile):
                 projectile.alive = False
-                take_damage(enemy, projectile.damage)
+                take_damage(enemy, projectile.attack_damage)
                 if not enemy.alive:
                     game.score += enemy.score
                 break

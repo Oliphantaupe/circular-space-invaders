@@ -26,21 +26,28 @@ def draw_debug_grid(surface, center, max_radius, font):
         surface.blit(label, label.get_rect(center=center + Vector2(max_radius + 20, 0).rotate(angle)))
 
 
+def draw_ship(surface, ship):
+    if ship.shape == "circle":
+        pygame.draw.circle(surface, ship.color, ship.position, ship.size)
+    elif ship.shape == "triangle":
+        tip = ship.position + ship.direction * (ship.size + 10)
+        left = ship.position + ship.direction.rotate(140) * ship.size
+        right = ship.position + ship.direction.rotate(-140) * ship.size
+        pygame.draw.polygon(surface, ship.color, [tip, left, right])
+    else:
+        raise ValueError(f"Unknown shape: {ship.shape}")
+
+
 def draw_world(game, small_font):
     screen = game.screen
     player = game.player
     if game.show_debug_grid:
-        draw_debug_grid(screen, player.pos, content.SPAWN_RADIUS, small_font)
-
-    tip = player.pos + player.direction * (player.radius + 10)
-    left = player.pos + player.direction.rotate(140) * player.radius
-    right = player.pos + player.direction.rotate(-140) * player.radius
-    pygame.draw.polygon(screen, player.color, [tip, left, right])
-
+        draw_debug_grid(screen, player.position, content.SPAWN_RADIUS, small_font)
+    draw_ship(screen, player)
     for projectile in game.projectiles:
-        pygame.draw.circle(screen, (255, 240, 120), projectile.pos, projectile.radius)
+        pygame.draw.circle(screen, (255, 240, 120), projectile.position, projectile.size)
     for enemy in game.enemies:
-        pygame.draw.circle(screen, enemy.color, enemy.pos, enemy.radius)
+        draw_ship(screen, enemy)
 
 
 def draw_hud(game, font):
@@ -48,7 +55,7 @@ def draw_hud(game, font):
     wave_manager = game.wave_manager
     wave_number = min(wave_manager.wave_index + 1, len(content.WAVES))
     hud = (
-        f"Health {player.health:.0f}/{player.max_health:.0f}   Score {game.score}   "
+        f"Health {player.health_point:.0f}/{player.max_health_point:.0f}   Score {game.score}   "
         f"Time {game.elapsed_time:.1f}s   Cycle {wave_manager.cycle}   "
         f"Wave {wave_number}/{len(content.WAVES)}"
     )
@@ -85,8 +92,8 @@ def draw_cycle_summary(game, font, big_font):
     for name in content.ENEMY_CLASSES:
         current, upcoming = create_enemy(name, Vector2(), cycle), create_enemy(name, Vector2(), cycle + 1)
         lines.append((
-            f"{name.capitalize()}: health {current.max_health} -> {upcoming.max_health}, "
-            f"damage {current.contact_damage} -> {upcoming.contact_damage}",
+            f"{name.capitalize()}: health {current.max_health_point} -> {upcoming.max_health_point}, "
+            f"damage {current.attack_damage} -> {upcoming.attack_damage}",
             font, TEXT_COLOR,
         ))
     lines.append(("Choose a cycle upgrade:", font, TEXT_COLOR))

@@ -9,12 +9,12 @@ from . import content
 
 
 class Projectile:
-    radius = 5
+    size = 5                                # hitbox radius in pixels
 
-    def __init__(self, pos: Vector2, direction: Vector2, damage: float, speed: float):
-        self.pos = Vector2(pos)
+    def __init__(self, position: Vector2, direction: Vector2, attack_damage: float, speed: float):
+        self.position = Vector2(position)
         self.direction = direction          # fixed at spawn, moves forward only
-        self.damage = damage                # inherited from the shooter when fired
+        self.attack_damage = attack_damage  # inherited from the shooter when fired
         self.speed = speed                  # inherited from the shooter when fired
         self.alive = True                   # False when it hits or leaves the screen
 
