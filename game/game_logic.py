@@ -7,6 +7,7 @@ import random
 
 import pygame
 
+from . import assets
 from . import game_content
 from .game_class import Projectile
 
@@ -97,6 +98,7 @@ def start_next_wave(game):
     wave_manager = game.wave_manager
     if wave_manager.wave_index >= 0:    # a wave was just cleared (-1 means the cycle is starting)
         heal_player(game, WAVE_END_HEAL * game.max_health_point)
+        game.ui.wave += 1               # total waves since the start of the game
     wave_manager.wave_index += 1
     if wave_manager.wave_index == len(game_content.waves):
         game.cycle_upgrade_choices = random.sample(game_content.cycle_upgrades, UPGRADES_OFFERED)
@@ -105,7 +107,6 @@ def start_next_wave(game):
     if wave_manager.wave_index > 0:     # the last wave of a cycle gives the cycle upgrade instead
         game.wave_upgrade_choices = random.sample(game_content.wave_upgrades, UPGRADES_OFFERED)
         game.state = "wave_upgrade"
-    game.ui.wave = wave_manager.wave_index + 1
 
     def spawn_position():
         return random_ring_position(game.player.position)
@@ -158,6 +159,7 @@ def shoot(game):
         move(projectile, projectile.angle, player.size)     # start at the edge of the ship
         game.projectiles.append(projectile)
     game.shot_timer = player.attack_delay
+    assets.play_sound("shoot")
 
 
 def move_player(game, dt):
@@ -228,6 +230,7 @@ def handle_collisions(game):
             surviving_enemies.append(enemy)
         else:
             game.ui.score += enemy.score * game.wave_manager.cycle
+            assets.play_sound("enemy_killed")
     game.enemies = surviving_enemies
     game.projectiles = [projectile for projectile in game.projectiles if projectile not in used_projectiles]
 
@@ -243,3 +246,4 @@ def update_playing(game, dt):
     game.ui.life = game.player.health_point
     if game.player.health_point <= 0:
         game.state = "game_over"
+        assets.play_sound("game_over")

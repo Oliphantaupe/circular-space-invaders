@@ -6,6 +6,7 @@ R restarts after game over, F1 toggles the debug grid.
 """
 import pygame
 
+from game import assets
 from game import game_state
 from game import game_logic
 from game import rendering
@@ -30,11 +31,12 @@ def main():
     pygame.init()
     pygame.display.set_caption("Circular Space Invaders")
     fonts = {
-        "small": pygame.font.Font(None, 20),
-        "normal": pygame.font.Font(None, 28),
-        "big": pygame.font.Font(None, 72),
+        "small": pygame.font.Font(assets.FONT_PATH, 13),
+        "normal": pygame.font.Font(assets.FONT_PATH, 18),
+        "big": pygame.font.Font(assets.FONT_PATH, 44),
     }
     game = game_state.Game()
+    assets.load(game.screen.get_size())
     running = True
     while running:
         dt = game.clock.tick(60) / 1000

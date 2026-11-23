@@ -1,7 +1,7 @@
 """Everything drawn on screen."""
 import pygame
 
-from . import game_content
+from . import assets
 from .game_logic import PROJECTILE_SIZE, SPAWN_RADIUS, enemy_classes, point_at, scaled_enemy
 
 BG_COLOR = (10, 10, 25)
@@ -10,6 +10,19 @@ GRID_COLOR = (35, 35, 60)
 UPGRADE_COLOR = (255, 240, 120)
 GRID_RING_STEP = 100        # pixels between debug rings
 GRID_SECTORS = 12           # debug angle sectors (30 degrees each)
+BOLT_LENGTH = 16            # length of a projectile's laser bolt in pixels
+BOLT_COLOR = (230, 250, 255)
+BOLT_GLOW_COLOR = (40, 140, 200)
+SPRITE_SCALE = 2.5          # a sprite's longest side is SPRITE_SCALE * the ship's size (hitbox radius)
+SPRITE_FACING = -90         # every ship image points up (-90 degrees)
+
+# Ship class name -> image name in assets.images. Classes not listed are drawn from their shape and color.
+SHIP_SPRITES = {
+    "Player": "player",
+    "Basic_Enemy": "basic_enemy",
+    "Elite_Enemy": "elite_enemy",
+    "Boss_Enemy": "boss_enemy",
+}
 
 
 def draw_debug_grid(surface, center, max_radius, font):
@@ -24,8 +37,18 @@ def draw_debug_grid(surface, center, max_radius, font):
         surface.blit(label, label.get_rect(center=point_at(center, angle, max_radius + 20)))
 
 
+def draw_sprite(surface, image, position, angle, length):
+    """Draws image centered on position, rotated to face angle, its longest side scaled to length."""
+    scale = length / max(image.get_size())
+    rotated = pygame.transform.rotozoom(image, SPRITE_FACING - angle, scale)
+    surface.blit(rotated, rotated.get_rect(center=position))
+
+
 def draw_ship(surface, ship):
-    if ship.shape == "circle":
+    image_name = SHIP_SPRITES.get(type(ship).__name__)
+    if image_name in assets.images:
+        draw_sprite(surface, assets.images[image_name], ship.position, ship.angle, SPRITE_SCALE * ship.size)
+    elif ship.shape == "circle":
         pygame.draw.circle(surface, ship.color, ship.position, ship.size)
     elif ship.shape == "triangle":
         tip = point_at(ship.position, ship.angle, ship.size + 10)
@@ -36,6 +59,13 @@ def draw_ship(surface, ship):
         raise ValueError(f"Unknown shape: {ship.shape}")
 
 
+def draw_bolt(surface, projectile):
+    """Laser bolt: a short bright line with a wider dark glow behind it, pointing where it flies."""
+    tail = point_at(projectile.position, projectile.angle + 180, BOLT_LENGTH)
+    pygame.draw.line(surface, BOLT_GLOW_COLOR, tail, projectile.position, PROJECTILE_SIZE + 1)
+    pygame.draw.line(surface, BOLT_COLOR, tail, projectile.position, 2)
+
+
 def draw_world(game, small_font):
     screen = game.screen
     player = game.player
@@ -43,7 +73,7 @@ def draw_world(game, small_font):
         draw_debug_grid(screen, player.position, SPAWN_RADIUS, small_font)
     draw_ship(screen, player)
     for projectile in game.projectiles:
-        pygame.draw.circle(screen, (255, 240, 120), projectile.position, PROJECTILE_SIZE)
+        draw_bolt(screen, projectile)
     for enemy in game.enemies:
         draw_ship(screen, enemy)
 
@@ -52,8 +82,7 @@ def draw_hud(game, font):
     ui = game.ui
     hud = (
         f"Health {ui.life:.0f}/{game.max_health_point:.0f}   Score {ui.score}   "
-        f"Time {ui.time:.1f}s   Cycle {game.wave_manager.cycle}   "
-        f"Wave {ui.wave}/{len(game_content.waves)}"
+        f"Time {ui.time:.1f}s   Wave {ui.wave}"
     )
     game.screen.blit(font.render(hud, True, TEXT_COLOR), (12, 10))
 
@@ -106,7 +135,10 @@ def draw_game_over(game, font, big_font):
 
 
 def draw(game, fonts):
-    game.screen.fill(BG_COLOR)
+    if assets.background is not None:
+        game.screen.blit(assets.background, (0, 0))
+    else:
+        game.screen.fill(BG_COLOR)
     draw_world(game, fonts["small"])
     draw_hud(game, fonts["normal"])
     if game.state == "wave_upgrade":
