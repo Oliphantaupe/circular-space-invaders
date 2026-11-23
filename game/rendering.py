@@ -4,7 +4,6 @@ import pygame
 from . import assets
 from .game_logic import PROJECTILE_SIZE, SPAWN_RADIUS, enemy_classes, point_at, scaled_enemy
 
-BG_COLOR = (10, 10, 25)
 TEXT_COLOR = (220, 220, 230)
 GRID_COLOR = (35, 35, 60)
 UPGRADE_COLOR = (255, 240, 120)
@@ -135,10 +134,7 @@ def draw_game_over(game, font, big_font):
 
 
 def draw(game, fonts):
-    if assets.background is not None:
-        game.screen.blit(assets.background, (0, 0))
-    else:
-        game.screen.fill(BG_COLOR)
+    game.screen.blit(assets.background, (0, 0))
     draw_world(game, fonts["small"])
     draw_hud(game, fonts["normal"])
     if game.state == "wave_upgrade":
