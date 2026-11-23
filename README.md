@@ -1,6 +1,6 @@
 # Circular Space Invaders
 
-A space shooter where your ship sits fixed in the center of the screen. Enemies come in from every direction, and you rotate to aim and shoot before they reach you.
+A space shooter where enemies come in from every direction. You move around the screen, aim with the mouse and shoot them before they reach you.
 
 > **Work in progress.** Each version is a proof of concept for testing our changes. Nothing here is final: mechanics, numbers and visuals will change.
 
