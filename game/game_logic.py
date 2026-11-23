@@ -1,104 +1,130 @@
-"""Game behaviour: cycles and waves, upgrades, movement, shooting and collisions."""
+"""Game behaviour: cycles and waves, upgrades, movement, shooting and collisions.
+
+Ship stats, waves, upgrades and enemy scaling come from game_class.py and game_content.py.
+"""
+import math
 import random
 
 import pygame
-from pygame.math import Vector2
 
-from . import game_state
-from . import content
+from . import game_content
+from .game_class import Projectile
 
-MOVE_KEYS = {                       # key -> movement direction (Z/Q/S/D on AZERTY, plus arrows)
-    pygame.K_z: Vector2(0, -1), pygame.K_UP: Vector2(0, -1),
-    pygame.K_s: Vector2(0, 1), pygame.K_DOWN: Vector2(0, 1),
-    pygame.K_q: Vector2(-1, 0), pygame.K_LEFT: Vector2(-1, 0),
-    pygame.K_d: Vector2(1, 0), pygame.K_RIGHT: Vector2(1, 0),
+SPAWN_RADIUS = 400          # enemies appear on a ring this far from the player
+SPAWN_DELAY = 0.5           # seconds between two enemies of a wave
+WAVE_END_HEAL = 0.20        # fraction of max health restored when a wave is cleared
+UPGRADES_OFFERED = 3        # upgrades to choose from, picked with keys 1/2/3
+PROJECTILE_SIZE = 5         # projectile hitbox radius in pixels
+
+MOVE_KEYS = {               # key -> (x, y) movement (Z/Q/S/D on AZERTY, plus arrows)
+    pygame.K_z: (0, -1), pygame.K_UP: (0, -1),
+    pygame.K_s: (0, 1), pygame.K_DOWN: (0, 1),
+    pygame.K_q: (-1, 0), pygame.K_LEFT: (-1, 0),
+    pygame.K_d: (1, 0), pygame.K_RIGHT: (1, 0),
 }
 
 
-# --- Ships -----------------------------------------------------------------
+# --- Geometry ----------------------------------------------------------------
 
-def take_damage(ship, amount):
-    ship.health_point = max(0, ship.health_point - amount)
-
-
-def damage_player(player, amount):
-    take_damage(player, max(1, amount - player.defense_amount))
+def point_at(start, angle, distance):
+    """Position distance pixels away from start in the direction of angle (degrees, 0 = right, 90 = down)."""
+    return [start[0] + math.cos(math.radians(angle)) * distance,
+            start[1] + math.sin(math.radians(angle)) * distance]
 
 
-def heal(ship, amount):
-    ship.health_point = min(ship.max_health_point, ship.health_point + amount)
+def move(thing, angle, distance):
+    """Moves a ship or projectile."""
+    thing.position = point_at(thing.position, angle, distance)
 
 
-def collides(first, second):
-    """Anything with a position and a size (ship or projectile)."""
-    return first.position.distance_to(second.position) < first.size + second.size
+def angle_towards(start, target):
+    """Angle in degrees from position start to position target."""
+    return math.degrees(math.atan2(target[1] - start[1], target[0] - start[0]))
 
 
-def create_enemy(name, position, cycle):
-    """Enemy of content.ENEMY_CLASSES[name], with its stats scaled for this cycle."""
-    enemy = content.ENEMY_CLASSES[name](position)
-    growth = content.STAT_GROWTH_PER_CYCLE ** (cycle - 1)
-    enemy.max_health_point = round(enemy.max_health_point * growth)
-    enemy.health_point = enemy.max_health_point
-    enemy.attack_damage = round(enemy.attack_damage * growth)
-    enemy.score = enemy.score * cycle
-    return enemy
+def collides(first_position, first_size, second_position, second_size):
+    return math.dist(first_position, second_position) < first_size + second_size
 
 
-# --- Cycles, waves and upgrades -------------------------------------------
+def random_ring_position(center):
+    """Random point at SPAWN_RADIUS pixels from center."""
+    return point_at(center, random.uniform(0, 360), SPAWN_RADIUS)
 
-def wave_enemy_counts(wave_index, cycle):
-    return {name: count * cycle for name, count in content.WAVES[wave_index].items()}
+
+# --- Player health -------------------------------------------------------------
+
+def damage_player(game, amount):
+    """Defense is a flat reduction, the player always loses at least 1 health point."""
+    player = game.player
+    player.health_point = max(0, player.health_point - max(1, amount - player.defense_amount))
+
+
+def heal_player(game, amount):
+    game.player.health_point = min(game.max_health_point, game.player.health_point + amount)
+
+
+def upgrade_player(game, upgrade):
+    """Applies an upgrade from game_content. Upgrades multiply health_point (the current health),
+    so the max health is multiplied by the same factor."""
+    health_before = game.player.health_point
+    game_content.apply_upgrade(game.player, upgrade)
+    if health_before > 0:
+        game.max_health_point *= game.player.health_point / health_before
+
+
+# --- Enemies, waves and cycles ---------------------------------------------------
+
+def origin():
+    return [0, 0]
+
+
+def enemy_classes():
+    """Every enemy class used in game_content.waves, in order of appearance."""
+    classes = []
+    for wave in game_content.waves:
+        for enemy_class in wave:
+            if enemy_class not in classes:
+                classes.append(enemy_class)
+    return classes
+
+
+def scaled_enemy(enemy_class, cycle):
+    """One enemy with the stats it has in this cycle (scaled by game_content.spawn_wave)."""
+    return game_content.spawn_wave({enemy_class: 1}, cycle, origin)[0]
 
 
 def start_next_wave(game):
     wave_manager = game.wave_manager
     if wave_manager.wave_index >= 0:    # a wave was just cleared (-1 means the cycle is starting)
-        heal(game.player, content.WAVE_END_HEAL * game.player.max_health_point)
+        heal_player(game, WAVE_END_HEAL * game.max_health_point)
     wave_manager.wave_index += 1
-    if wave_manager.wave_index == len(content.WAVES):
-        game.cycle_upgrade_choices = random_upgrades(content.CYCLE_UPGRADES)
+    if wave_manager.wave_index == len(game_content.waves):
+        game.cycle_upgrade_choices = random.sample(game_content.cycle_upgrades, UPGRADES_OFFERED)
         game.state = "cycle_summary"
         return
     if wave_manager.wave_index > 0:     # the last wave of a cycle gives the cycle upgrade instead
-        game.wave_upgrade_choices = random_upgrades(content.WAVE_UPGRADES)
+        game.wave_upgrade_choices = random.sample(game_content.wave_upgrades, UPGRADES_OFFERED)
         game.state = "wave_upgrade"
-    counts = wave_enemy_counts(wave_manager.wave_index, wave_manager.cycle)
-    wave_manager.spawn_queue = [name for name, count in counts.items() for _ in range(count)]
+    game.ui.wave = wave_manager.wave_index + 1
+
+    def spawn_position():
+        return random_ring_position(game.player.position)
+
+    wave = game_content.waves[wave_manager.wave_index]
+    wave_manager.spawn_queue = game_content.spawn_wave(wave, wave_manager.cycle, spawn_position)
     random.shuffle(wave_manager.spawn_queue)
     wave_manager.spawn_timer = 0.0
 
 
-def random_upgrades(upgrades):
-    return random.sample(list(upgrades.values()), content.UPGRADES_OFFERED)
-
-
-def apply_effect(player, effect):
-    old_value = getattr(player, effect["stat"])
-    if effect["operation"] == "multiply":
-        new_value = old_value * effect["amount"]
-    else:
-        new_value = old_value + effect["amount"]
-    setattr(player, effect["stat"], new_value)
-    if effect["stat"] == "max_health_point":
-        heal(player, new_value - old_value)     # heal the health gained
-
-
-def apply_upgrade(player, upgrade):
-    for effect in upgrade["effects"]:
-        apply_effect(player, effect)
-    player.upgrades.append(upgrade["label"])
-
-
 def pick_wave_upgrade(game, choice):
     """choice: index in game.wave_upgrade_choices."""
-    apply_upgrade(game.player, game.wave_upgrade_choices[choice])
+    upgrade_player(game, game.wave_upgrade_choices[choice])
     game.state = "playing"
 
 
 def start_next_cycle(game, choice):
     """choice: index in game.cycle_upgrade_choices."""
-    apply_upgrade(game.player, game.cycle_upgrade_choices[choice])
+    upgrade_player(game, game.cycle_upgrade_choices[choice])
     game.wave_manager.cycle += 1
     game.wave_manager.wave_index = -1   # the wave manager starts wave 0 on the next update
     game.state = "playing"
@@ -112,86 +138,98 @@ def update_wave_manager(game, dt):
         return
     wave_manager.spawn_timer -= dt
     if wave_manager.spawn_timer <= 0:
-        spawn_angle = random.uniform(0, 360)
-        spawn_position = game.player.position + Vector2(content.SPAWN_RADIUS, 0).rotate(spawn_angle)
-        game.enemies.append(create_enemy(wave_manager.spawn_queue.pop(), spawn_position, wave_manager.cycle))
-        wave_manager.spawn_timer = content.SPAWN_DELAY
+        enemy = wave_manager.spawn_queue.pop()
+        # The player may have moved since the wave was created: spawn around where they are now.
+        enemy.position = random_ring_position(game.player.position)
+        enemy.angle = angle_towards(enemy.position, game.player.position)
+        game.enemies.append(enemy)
+        wave_manager.spawn_timer = SPAWN_DELAY
 
 
 # --- Player ----------------------------------------------------------------
 
-def shoot(player):
-    """Fires projectile_amount projectiles fanned around the aim direction."""
-    projectiles = []
-    for i in range(player.projectile_amount):
-        offset = (i - (player.projectile_amount - 1) / 2) * player.projectile_spread
-        direction = player.direction.rotate(offset)
-        muzzle = player.position + direction * player.size
-        projectiles.append(game_state.Projectile(muzzle, direction, player.attack_damage, player.projectile_speed))
-    player.cooldown_timer = player.attack_delay
-    return projectiles
+def shoot(game):
+    """Fires projectile_amount projectiles, projectile_spread degrees apart, centered on the aim."""
+    player = game.player
+    amount = int(player.projectile_amount)
+    for i in range(amount):
+        projectile = Projectile(player)
+        projectile.angle = player.angle + (i - (amount - 1) / 2) * player.projectile_spread
+        move(projectile, projectile.angle, player.size)     # start at the edge of the ship
+        game.projectiles.append(projectile)
+    game.shot_timer = player.attack_delay
 
 
-def move_player(player, dt, bounds):
+def move_player(game, dt):
+    player = game.player
     keys = pygame.key.get_pressed()
-    movement = Vector2()
-    for key, direction in MOVE_KEYS.items():
+    x, y = 0, 0
+    for key, (key_x, key_y) in MOVE_KEYS.items():
         if keys[key]:
-            movement += direction
-    if movement.length() > 0:
-        player.position += movement.normalize() * player.movement_speed * dt
-    player.position.x = max(bounds.left + player.size, min(bounds.right - player.size, player.position.x))
-    player.position.y = max(bounds.top + player.size, min(bounds.bottom - player.size, player.position.y))
+            x += key_x
+            y += key_y
+    if x != 0 or y != 0:
+        player.position[0] += x / math.hypot(x, y) * player.movement_speed * dt   # same speed diagonally
+        player.position[1] += y / math.hypot(x, y) * player.movement_speed * dt
+    bounds = game.screen.get_rect()
+    player.position[0] = max(bounds.left + player.size, min(bounds.right - player.size, player.position[0]))
+    player.position[1] = max(bounds.top + player.size, min(bounds.bottom - player.size, player.position[1]))
 
 
-def aim_player(player):
-    to_mouse = Vector2(pygame.mouse.get_pos()) - player.position
-    if to_mouse.length() > 0:
-        player.angle = Vector2(1, 0).angle_to(to_mouse)
+def aim_player(game):
+    mouse = pygame.mouse.get_pos()
+    if math.dist(mouse, game.player.position) > 0:
+        game.player.angle = angle_towards(game.player.position, mouse)
 
 
 def update_player(game, dt):
-    player = game.player
-    move_player(player, dt, game.screen.get_rect())
-    aim_player(player)
-    player.cooldown_timer -= dt
+    move_player(game, dt)
+    aim_player(game)
+    game.shot_timer -= dt
     wants_to_shoot = pygame.key.get_pressed()[pygame.K_SPACE] or pygame.mouse.get_pressed()[0]
-    if wants_to_shoot and player.cooldown_timer <= 0:
-        game.projectiles += shoot(player)
+    if wants_to_shoot and game.shot_timer <= 0:
+        shoot(game)
 
 
 # --- World -----------------------------------------------------------------
 
 def update_projectiles(game, dt):
     bounds = game.screen.get_rect()
+    on_screen = []
     for projectile in game.projectiles:
-        projectile.position += projectile.direction * projectile.speed * dt
-        if not bounds.collidepoint(projectile.position):
-            projectile.alive = False
+        move(projectile, projectile.angle, projectile.speed * dt)
+        if bounds.collidepoint(projectile.position):
+            on_screen.append(projectile)
+    game.projectiles = on_screen
 
 
 def update_enemies(game, dt):
     for enemy in game.enemies:
-        to_player = game.player.position - enemy.position
-        if to_player.length() > 0:
-            enemy.angle = Vector2(1, 0).angle_to(to_player)     # faces the player
-            enemy.position += to_player.normalize() * enemy.movement_speed * dt
+        enemy.angle = angle_towards(enemy.position, game.player.position)
+        move(enemy, enemy.angle, enemy.movement_speed * dt)
 
 
 def handle_collisions(game):
+    """Enemies die when they touch the player, player projectiles damage enemies and disappear."""
     player = game.player
+    used_projectiles = []
+    surviving_enemies = []
     for enemy in game.enemies:
-        if collides(enemy, player):
-            damage_player(player, enemy.attack_damage)
-            enemy.health_point = 0            # enemies die on contact
+        if collides(enemy.position, enemy.size, player.position, player.size):
+            damage_player(game, enemy.attack_damage)
             continue
         for projectile in game.projectiles:
-            if projectile.alive and collides(enemy, projectile):
-                projectile.alive = False
-                take_damage(enemy, projectile.attack_damage)
-                if not enemy.alive:
-                    game.score += enemy.score
+            if projectile.is_player and projectile not in used_projectiles \
+                    and collides(enemy.position, enemy.size, projectile.position, PROJECTILE_SIZE):
+                used_projectiles.append(projectile)
+                enemy.health_point -= projectile.attack_damage
                 break
+        if enemy.health_point > 0:
+            surviving_enemies.append(enemy)
+        else:
+            game.ui.score += enemy.score * game.wave_manager.cycle
+    game.enemies = surviving_enemies
+    game.projectiles = [projectile for projectile in game.projectiles if projectile not in used_projectiles]
 
 
 def update_playing(game, dt):
@@ -199,10 +237,9 @@ def update_playing(game, dt):
     update_projectiles(game, dt)
     update_enemies(game, dt)
     handle_collisions(game)
-    game.projectiles = [p for p in game.projectiles if p.alive]
-    game.enemies = [e for e in game.enemies if e.alive]
     update_wave_manager(game, dt)
 
-    game.elapsed_time += dt
-    if not game.player.alive:
+    game.ui.time += dt
+    game.ui.life = game.player.health_point
+    if game.player.health_point <= 0:
         game.state = "game_over"

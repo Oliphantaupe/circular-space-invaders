@@ -1,9 +1,8 @@
 """Everything drawn on screen."""
 import pygame
-from pygame.math import Vector2
 
-from . import content
-from .game_logic import create_enemy
+from . import game_content
+from .game_logic import PROJECTILE_SIZE, SPAWN_RADIUS, enemy_classes, point_at, scaled_enemy
 
 BG_COLOR = (10, 10, 25)
 TEXT_COLOR = (220, 220, 230)
@@ -17,22 +16,21 @@ def draw_debug_grid(surface, center, max_radius, font):
     """Polar grid: rings by distance from the player, sectors by angle (0 = right, clockwise)."""
     for radius in range(GRID_RING_STEP, int(max_radius) + 1, GRID_RING_STEP):
         pygame.draw.circle(surface, GRID_COLOR, center, radius, 1)
-        surface.blit(font.render(str(radius), True, GRID_COLOR), center + Vector2(radius + 3, 2))
+        surface.blit(font.render(str(radius), True, GRID_COLOR), (center[0] + radius + 3, center[1] + 2))
     for sector in range(GRID_SECTORS):
         angle = sector * 360 / GRID_SECTORS
-        edge = center + Vector2(max_radius, 0).rotate(angle)
-        pygame.draw.line(surface, GRID_COLOR, center, edge, 1)
+        pygame.draw.line(surface, GRID_COLOR, center, point_at(center, angle, max_radius), 1)
         label = font.render(f"{angle:.0f}", True, GRID_COLOR)
-        surface.blit(label, label.get_rect(center=center + Vector2(max_radius + 20, 0).rotate(angle)))
+        surface.blit(label, label.get_rect(center=point_at(center, angle, max_radius + 20)))
 
 
 def draw_ship(surface, ship):
     if ship.shape == "circle":
         pygame.draw.circle(surface, ship.color, ship.position, ship.size)
     elif ship.shape == "triangle":
-        tip = ship.position + ship.direction * (ship.size + 10)
-        left = ship.position + ship.direction.rotate(140) * ship.size
-        right = ship.position + ship.direction.rotate(-140) * ship.size
+        tip = point_at(ship.position, ship.angle, ship.size + 10)
+        left = point_at(ship.position, ship.angle + 140, ship.size)
+        right = point_at(ship.position, ship.angle - 140, ship.size)
         pygame.draw.polygon(surface, ship.color, [tip, left, right])
     else:
         raise ValueError(f"Unknown shape: {ship.shape}")
@@ -42,29 +40,27 @@ def draw_world(game, small_font):
     screen = game.screen
     player = game.player
     if game.show_debug_grid:
-        draw_debug_grid(screen, player.position, content.SPAWN_RADIUS, small_font)
+        draw_debug_grid(screen, player.position, SPAWN_RADIUS, small_font)
     draw_ship(screen, player)
     for projectile in game.projectiles:
-        pygame.draw.circle(screen, (255, 240, 120), projectile.position, projectile.size)
+        pygame.draw.circle(screen, (255, 240, 120), projectile.position, PROJECTILE_SIZE)
     for enemy in game.enemies:
         draw_ship(screen, enemy)
 
 
 def draw_hud(game, font):
-    player = game.player
-    wave_manager = game.wave_manager
-    wave_number = min(wave_manager.wave_index + 1, len(content.WAVES))
+    ui = game.ui
     hud = (
-        f"Health {player.health_point:.0f}/{player.max_health_point:.0f}   Score {game.score}   "
-        f"Time {game.elapsed_time:.1f}s   Cycle {wave_manager.cycle}   "
-        f"Wave {wave_number}/{len(content.WAVES)}"
+        f"Health {ui.life:.0f}/{game.max_health_point:.0f}   Score {ui.score}   "
+        f"Time {ui.time:.1f}s   Cycle {game.wave_manager.cycle}   "
+        f"Wave {ui.wave}/{len(game_content.waves)}"
     )
     game.screen.blit(font.render(hud, True, TEXT_COLOR), (12, 10))
 
 
 def draw_wave_upgrade_popup(game, font):
     """Discreet line at the bottom of the screen, the game is paused until a pick."""
-    choices = "   ".join(f"{number} - {upgrade['label']}" for number, upgrade in enumerate(game.wave_upgrade_choices, start=1))
+    choices = "   ".join(f"{number} - {upgrade.capitalize()}" for number, upgrade in enumerate(game.wave_upgrade_choices, start=1))
     text = f"Upgrade:   {choices}"
     rendered = font.render(text, True, UPGRADE_COLOR)
     screen_rect = game.screen.get_rect()
@@ -89,16 +85,16 @@ def draw_overlay(surface):
 def draw_cycle_summary(game, font, big_font):
     cycle = game.wave_manager.cycle
     lines = [(f"Cycle {cycle} complete", big_font, (120, 230, 140)), ("Enemies next cycle:", font, TEXT_COLOR)]
-    for name in content.ENEMY_CLASSES:
-        current, upcoming = create_enemy(name, Vector2(), cycle), create_enemy(name, Vector2(), cycle + 1)
+    for enemy_class in enemy_classes():
+        current, upcoming = scaled_enemy(enemy_class, cycle), scaled_enemy(enemy_class, cycle + 1)
         lines.append((
-            f"{name.capitalize()}: health {current.max_health_point} -> {upcoming.max_health_point}, "
-            f"damage {current.attack_damage} -> {upcoming.attack_damage}",
+            f"{enemy_class.__name__.replace('_', ' ')}: health {current.health_point:.0f} -> {upcoming.health_point:.0f}, "
+            f"damage {current.attack_damage:.0f} -> {upcoming.attack_damage:.0f}",
             font, TEXT_COLOR,
         ))
     lines.append(("Choose a cycle upgrade:", font, TEXT_COLOR))
     for number, upgrade in enumerate(game.cycle_upgrade_choices, start=1):
-        lines.append((f"{number} - {upgrade['label']}", font, UPGRADE_COLOR))
+        lines.append((f"{number} - {upgrade.capitalize()}", font, UPGRADE_COLOR))
     draw_overlay(game.screen)
     draw_centered_lines(game.screen, lines, top=180)
 
