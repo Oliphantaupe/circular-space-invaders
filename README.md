@@ -43,7 +43,7 @@ python main.py
 | `game/game_state.py` | Runtime state: `WaveManager`, `Game` |
 | `game/game_logic.py` | Behaviour: waves and cycles, movement, shooting, collisions, plus spawn ring, heal and projectile size settings |
 | `game/rendering.py` | Everything drawn on screen |
-| `game/assets.py` | Loads the images, sounds and font from `assets/` |
+| `game/assets.py` | Loads the images, sounds, music and font from `assets/` |
 
 To tune the ships, edit their class in `game/game_class.py`. Waves, upgrades and scaling are in `game/game_content.py`.
 
@@ -51,7 +51,7 @@ To add an enemy type, add a `Ship` subclass in `game/game_class.py` and use the 
 
 ## Credits
 
-Ships and space backgrounds by Skorpio (GPL 3.0 / CC-BY-SA 3.0), player ship by wuhu (CC-BY 3.0), sounds by Kenney (CC0), Orbitron font (SIL Open Font License). Details and links in [assets/CREDITS.md](assets/CREDITS.md).
+Ships and space backgrounds by Skorpio (GPL 3.0 / CC-BY-SA 3.0), player ship by wuhu (CC-BY 3.0), sounds by Kenney (CC0), music "Angel Eyes (Vision II)" by Kim Lightyear (CC-BY-SA), Orbitron font (SIL Open Font License). Details and links in [assets/CREDITS.md](assets/CREDITS.md).
 
 ## License
 

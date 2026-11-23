@@ -36,7 +36,7 @@ Le code est réparti en modules, chacun avec une responsabilité :
 | `game/game_state.py` | État d’une partie en cours : `WaveManager`, `Game` |
 | `game/game_logic.py` | Comportement : déplacements, tirs, collisions, vagues et cycles |
 | `game/rendering.py` | Affichage |
-| `game/assets.py` | Chargement des images, sons et police du dossier `assets/` (crédits dans `assets/CREDITS.md`) |
+| `game/assets.py` | Chargement des images, sons, musique et police du dossier `assets/` (crédits dans `assets/CREDITS.md`) |
 
 ### Diagramme de classes
 

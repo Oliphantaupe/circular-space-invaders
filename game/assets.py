@@ -1,4 +1,4 @@
-"""Loads images, sounds and the font from the assets folder (credits in assets/CREDITS.md)."""
+"""Loads images, sounds, music and the font from the assets folder (credits in assets/CREDITS.md)."""
 import os
 
 import pygame
@@ -18,6 +18,8 @@ SOUND_FILES = {
     "game_over": "game_over.ogg",
 }
 SOUND_VOLUME = 0.4
+MUSIC_PATH = os.path.join(ASSETS_DIR, "music", "angel_eyes.ogg")
+MUSIC_VOLUME = 0.25         # quieter than the sound effects
 NEBULA_ALPHA = 110          # 0 = invisible, 255 = full brightness
 
 images = {}                 # name -> pygame.Surface, filled by load()
@@ -44,7 +46,7 @@ def build_background(screen_size):
 
 
 def load(screen_size):
-    """Call once, after the window is created."""
+    """Call once, after the window is created. Also starts the music, looping."""
     global background
     for name, file_name in IMAGE_FILES.items():
         images[name] = load_image(file_name)
@@ -53,6 +55,9 @@ def load(screen_size):
         for name, file_name in SOUND_FILES.items():
             sounds[name] = pygame.mixer.Sound(os.path.join(ASSETS_DIR, "sounds", file_name))
             sounds[name].set_volume(SOUND_VOLUME)
+        pygame.mixer.music.load(MUSIC_PATH)
+        pygame.mixer.music.set_volume(MUSIC_VOLUME)
+        pygame.mixer.music.play(-1)
 
 
 def play_sound(name):
