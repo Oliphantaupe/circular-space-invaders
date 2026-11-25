@@ -41,11 +41,11 @@ def draw_world(surface, game):
     surface.blit(assets.background, (0, 0))
     if game.show_debug_grid:
         draw_debug_grid(surface, game.player.position, SPAWN_RADIUS, assets.fonts["small"])
-    draw_ship(surface, game.player, assets.ship_images[type(game.player)])
+    draw_ship(surface, game.player, assets.ship_image(game.player))
     for projectile in game.projectiles:
         draw_sprite(surface, assets.projectile_image, projectile.position, projectile.angle)
     for enemy in game.enemies:
-        draw_ship(surface, enemy, assets.ship_images[type(enemy)])
+        draw_ship(surface, enemy, assets.ship_image(enemy))
 
 
 def draw_hud(surface, game):

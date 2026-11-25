@@ -49,7 +49,7 @@ To tune the ships, edit their class in `game/game_class.py`. Waves, upgrades and
 
 To add an enemy type, add a `Ship` subclass in `game/game_class.py` and use the class in `waves`. To add an upgrade, add its name to `wave_upgrades` or `cycle_upgrades` and its effect in `apply_upgrade`. To add a screen (pause, menu...), add a `Screen` subclass in `game/screens.py`.
 
-Images face right (angle 0) and are already the size a ship has when it is created (2.5 x its `size`); a new ship class needs its image in `SHIP_IMAGE_FILES` (`game/assets.py`).
+Images face right (angle 0) and are already the size a ship has when it is created (2.5 x its `size`). A new ship class gets its image in `SHIP_IMAGE_FILES` (`game/assets.py`); without one it uses the `Basic_Enemy` image.
 
 ## Credits
 

@@ -10,7 +10,7 @@ from game.assets import Assets
 from game.game_state import Game
 from game.screens import PlayingScreen
 
-WINDOW_SIZE = (1000, 700)   # the background image has this size
+WINDOW_SIZE = (1000, 700)
 FPS = 60
 
 

@@ -17,6 +17,7 @@ SHIP_IMAGE_FILES = {
     Elite_Enemy: "elite_enemy.png",
     Boss_Enemy: "boss_enemy.png",
 }
+DEFAULT_SHIP_CLASS = Basic_Enemy    # its image is used for ship classes not listed above
 SOUND_FILES = {
     "shoot": "shoot.ogg",
     "enemy_killed": "enemy_killed.ogg",
@@ -34,7 +35,8 @@ def load_image(file_name):
 class Assets:
     """Loads everything once, after the window is created, and starts the music (looping)."""
     def __init__(self):
-        self.background = load_image("background.jpg")
+        window_size = pygame.display.get_surface().get_size()
+        self.background = pygame.transform.smoothscale(load_image("background.jpg"), window_size)
         self.projectile_image = load_image("projectile.png")
         self.ship_images = {}
         for ship_class, file_name in SHIP_IMAGE_FILES.items():
@@ -50,6 +52,9 @@ class Assets:
             pygame.mixer.music.load(MUSIC_PATH)
             pygame.mixer.music.set_volume(MUSIC_VOLUME)
             pygame.mixer.music.play(-1)
+
+    def ship_image(self, ship):
+        return self.ship_images.get(type(ship), self.ship_images[DEFAULT_SHIP_CLASS])
 
     def play_sound(self, name):
         if name in self.sounds:
