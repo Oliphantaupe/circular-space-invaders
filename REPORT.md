@@ -58,12 +58,6 @@ classDiagram
         max_health_point, shot_timer
         shoot(), upgrade_player(upgrade), update(dt)
     }
-    class Screen {
-        handle_key(key), update(dt), draw(surface)
-    }
-    class UpgradeScreen {
-        choices, after_pick()
-    }
     Ship <|-- Player
     Ship <|-- Basic_Enemy
     Ship <|-- Elite_Enemy
@@ -75,6 +69,19 @@ classDiagram
     Game o-- "*" Ship : enemies
     Game o-- "*" Projectile : projectiles
     Game o-- Assets
+```
+
+Les écrans affichent une partie (`Game`) et la font avancer :
+
+```mermaid
+classDiagram
+    class Screen {
+        game
+        handle_key(key), update(dt), draw(surface)
+    }
+    class UpgradeScreen {
+        choices, after_pick()
+    }
     Screen <|-- PlayingScreen
     Screen <|-- GameOverScreen
     Screen <|-- UpgradeScreen
