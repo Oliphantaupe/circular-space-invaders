@@ -1,3 +1,8 @@
 __pycache__/
 *.py[cod]
 .venv/
+
+# Report: kept out of the repo, the PDF sent to the teacher is the reference
+REPORT.md
+REPORT.pdf
+REPORT.docx
