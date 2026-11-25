@@ -37,21 +37,24 @@ python main.py
 
 | File | Contents |
 |---|---|
-| `main.py` | Entry point: game loop and input handling |
+| `main.py` | Entry point: opens the window and runs the game loop |
 | `game/game_class.py` | Ships (`Ship` -> `Player`, `Basic_Enemy`, `Elite_Enemy`, `Boss_Enemy`) with their stats, `Projectile`, `UI` |
 | `game/game_content.py` | Waves, upgrade lists and their effects (`apply_upgrade`), wave spawning and cycle scaling (`scale_wave`) |
-| `game/game_state.py` | Runtime state: `WaveManager`, `Game` |
-| `game/game_logic.py` | Behaviour: waves and cycles, movement, shooting, collisions, plus spawn ring, heal and projectile size settings |
-| `game/rendering.py` | Everything drawn on screen |
-| `game/assets.py` | Loads the images, sounds, music and font from `assets/` |
+| `game/game_state.py` | A game in progress: `WaveManager` (cycles, waves, enemy release) and `Game` (player actions, health, upgrades, movement, collisions), plus spawn ring, heal and projectile size settings |
+| `game/screens.py` | One class per screen (`Screen` -> `PlayingScreen`, `GameOverScreen`, `UpgradeScreen` -> `WaveUpgradeScreen`, `CycleSummaryScreen`): controls, screen changes and what each screen draws |
+| `game/rendering.py` | Drawing helpers shared by the screens: world, HUD, overlay, text |
+| `game/geometry.py` | Positions and angles: `point_at`, `move`, `angle_towards`, `collides` |
+| `game/assets.py` | `Assets`: loads the images, fonts, sounds and music from `assets/` |
 
 To tune the ships, edit their class in `game/game_class.py`. Waves, upgrades and scaling are in `game/game_content.py`.
 
-To add an enemy type, add a `Ship` subclass in `game/game_class.py` and use the class in `waves`. To add an upgrade, add its name to `wave_upgrades` or `cycle_upgrades` and its effect in `apply_upgrade`.
+To add an enemy type, add a `Ship` subclass in `game/game_class.py` and use the class in `waves`. To add an upgrade, add its name to `wave_upgrades` or `cycle_upgrades` and its effect in `apply_upgrade`. To add a screen (pause, menu...), add a `Screen` subclass in `game/screens.py`.
+
+Images face right (angle 0) and are already the size a ship has when it is created (2.5 x its `size`); a new ship class needs its image in `SHIP_IMAGE_FILES` (`game/assets.py`).
 
 ## Credits
 
-Ships and space backgrounds by Skorpio (GPL 3.0 / CC-BY-SA 3.0), player ship by wuhu (CC-BY 3.0), sounds by Kenney (CC0), music "Angel Eyes (Vision II)" by Kim Lightyear (CC-BY-SA), Orbitron font (SIL Open Font License). Details and links in [assets/CREDITS.md](assets/CREDITS.md).
+Enemy ships by Skorpio (GPL 3.0 / CC-BY-SA 3.0), background photo by Francesco Ungaro (Pexels), player ship by wuhu (CC-BY 3.0), sounds by Kenney (CC0), music "Angel Eyes (Vision II)" by Kim Lightyear (CC-BY-SA), Orbitron font (SIL Open Font License). Details and links in [assets/CREDITS.md](assets/CREDITS.md).
 
 ## License
 
