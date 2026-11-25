@@ -24,6 +24,7 @@ def apply_upgrade(player, upgrade):
         player.attack_damage *= 1.15
     elif upgrade == "defense up":
         player.defense_amount += 2
+        player.defense_amount *= 1.1
     elif upgrade == "multishot":
         player.projectile_amount += 1
         if player.projectile_spread == 0:
@@ -41,12 +42,12 @@ def apply_upgrade(player, upgrade):
     elif upgrade == "tank":
         player.health_point *= 1.25
         player.defense_amount += 5
-        player.defense_amount *= 1.1
+        player.defense_amount *= 1.2
         player.movement_speed *= 0.75
     elif upgrade == "high caliber":
         player.attack_damage *= 1.5
         player.attack_delay *= 1.4
-        player.projectile_speed *= 1.4
+        player.projectile_speed *= 1.5
     elif upgrade == "shotgunner":
         player.projectile_amount += 5
         player.attack_damage *= 0.7
@@ -63,7 +64,7 @@ def apply_upgrade(player, upgrade):
     elif upgrade == "condensed shot":
         player.projectile_spread *= 0.50
         player.attack_damage *= 1.25
-        player.attack_delay *= 1.25
+        player.attack_delay *= 1.15
     elif upgrade == "strifer":
         player.attack_damage *= 0.5
         player.attack_delay *= 0.5
@@ -71,7 +72,7 @@ def apply_upgrade(player, upgrade):
     elif upgrade == "colossus":
         player.health_point *= 2
         player.defense_amount += 3
-        player.defense_amount *= 1.2
+        player.defense_amount *= 1.3
         player.attack_damage *= 1.3
         player.attack_delay *= 1.3
         player.movement_speed *= 0.5
@@ -85,7 +86,7 @@ def apply_upgrade(player, upgrade):
     else:
         raise ValueError(f"Unknown upgrade: {upgrade}")
 
-def spawn_wave(wave, cycle, position):
+def scale_wave(wave, cycle, position):
     """spawn enemies from a wave
 
     wave: amount of each enemy that will spzwn during the wave (dict)
@@ -93,7 +94,7 @@ def spawn_wave(wave, cycle, position):
     position: pos[x,y] of the enemy spawn (list), random.choice() should be used to randomize spawns
     """
     enemies = []
-    stat_mult = 1.5 ** (cycle - 1)
+    stat_mult = 1.25 ** (cycle - 1)
 
     for enemy_class, enemy_amount in wave.items():
         for _ in range(enemy_amount * cycle):

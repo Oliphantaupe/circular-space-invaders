@@ -39,7 +39,7 @@ python main.py
 |---|---|
 | `main.py` | Entry point: game loop and input handling |
 | `game/game_class.py` | Ships (`Ship` -> `Player`, `Basic_Enemy`, `Elite_Enemy`, `Boss_Enemy`) with their stats, `Projectile`, `UI` |
-| `game/game_content.py` | Waves, upgrade lists and their effects (`apply_upgrade`), wave spawning and cycle scaling (`spawn_wave`) |
+| `game/game_content.py` | Waves, upgrade lists and their effects (`apply_upgrade`), wave spawning and cycle scaling (`scale_wave`) |
 | `game/game_state.py` | Runtime state: `WaveManager`, `Game` |
 | `game/game_logic.py` | Behaviour: waves and cycles, movement, shooting, collisions, plus spawn ring, heal and projectile size settings |
 | `game/rendering.py` | Everything drawn on screen |

@@ -90,8 +90,8 @@ def enemy_classes():
 
 
 def scaled_enemy(enemy_class, cycle):
-    """One enemy with the stats it has in this cycle (scaled by game_content.spawn_wave)."""
-    return game_content.spawn_wave({enemy_class: 1}, cycle, origin)[0]
+    """One enemy with the stats it has in this cycle (scaled by game_content.scale_wave)."""
+    return game_content.scale_wave({enemy_class: 1}, cycle, origin)[0]
 
 
 def start_next_wave(game):
@@ -112,7 +112,7 @@ def start_next_wave(game):
         return random_ring_position(game.player.position)
 
     wave = game_content.waves[wave_manager.wave_index]
-    wave_manager.spawn_queue = game_content.spawn_wave(wave, wave_manager.cycle, spawn_position)
+    wave_manager.spawn_queue = game_content.scale_wave(wave, wave_manager.cycle, spawn_position)
     random.shuffle(wave_manager.spawn_queue)
     wave_manager.spawn_timer = 0.0
 

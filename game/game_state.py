@@ -12,7 +12,7 @@ class WaveManager:
     def __init__(self):
         self.cycle = 1                      # one cycle = every wave in game_content.waves
         self.wave_index = -1                # index in game_content.waves, -1 before the first wave
-        self.spawn_queue = []               # enemies created by spawn_wave, not on screen yet
+        self.spawn_queue = []               # enemies created by scale_wave, not on screen yet
         self.spawn_timer = 0.0
 
 

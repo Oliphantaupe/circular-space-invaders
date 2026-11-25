@@ -32,7 +32,7 @@ Le code est réparti en modules, chacun avec une responsabilité :
 |---|---|
 | `main.py` | Boucle de jeu et lecture des touches |
 | `game/game_class.py` | Classes des vaisseaux (`Ship` et ses sous-classes), `Projectile`, `UI` |
-| `game/game_content.py` | Contenu du jeu : vagues, listes d’améliorations, `apply_upgrade`, `spawn_wave` |
+| `game/game_content.py` | Contenu du jeu : vagues, listes d’améliorations, `apply_upgrade`, `scale_wave` |
 | `game/game_state.py` | État d’une partie en cours : `WaveManager`, `Game` |
 | `game/game_logic.py` | Comportement : déplacements, tirs, collisions, vagues et cycles |
 | `game/rendering.py` | Affichage |
@@ -131,7 +131,7 @@ Les réglages du jeu qui ne sont pas des statistiques de vaisseau sont des const
 - **`Wave_upgrades`** : Liste des améliorations qui seront accordées à chaque fin de vague.
 - **`Cycle_upgrades`** : Liste des améliorations qui seront accordées à chaque fin de cycle.
 - **`enemies`** et **`projectiles`** (dans `Game`) : listes des ennemis et projectiles présents à l’écran. Chaque image, elles sont reconstruites sans les ennemis morts ni les projectiles utilisés ou sortis de l’écran.
-- **`spawn_queue`** (dans `WaveManager`) : liste des ennemis créés par `spawn_wave` qui n’ont pas encore été placés à l’écran.
+- **`spawn_queue`** (dans `WaveManager`) : liste des ennemis créés par `scale_wave` qui n’ont pas encore été placés à l’écran.
 
 ### Classes / Attributs:
 
@@ -182,7 +182,7 @@ Redémarrer une partie consiste simplement à créer un nouvel objet `Game`.
 ### Fonctions / Méthodes:
 
 - **`Apply_upgrade`** : cette fonction prend en paramètre ; le vaisseau Joueur et l’id de l’amélioration à appliquer. Appeler cette fonction permet d’appliquer une amélioration, l’effets des améliorations sont définis directement à l’interieur de cette fonction, cela permet d’appliquer des améliorations potentiellement plus complexes avec des formules plutôt que d’être coincer à un simple ajout de statistique stockée dans une structure de donnée. Cette fonction ne retourne rien.
-- **`Spawn_wave`** : cette fonction prend en paramètre ; le contenu de la vague (dictionnaire, enemy_id : nombre d’ennemi), le cycle (valeur entière qui incrémente une fois toutes les vagues terminées) et la position d’apparition des ennemis, `random.choice` peut être utiliser pour choisir des positions d’apparition aléatoire à partir d’une liste. Le nombre d’ennemis et leurs puissance est calculer à partir du cycle.
+- **`scale_wave`** : cette fonction retourne la liste des ennemis à faire apparaître selon le cycle. Elle prend en paramètre ; le contenu de la vague (dictionnaire, enemy_id : nombre d’ennemi), le cycle (valeur entière qui incrémente une fois toutes les vagues terminées) et la position d’apparition des ennemis, `random.choice` peut être utiliser pour choisir des positions d’apparition aléatoire à partir d’une liste. Le nombre d’ennemis et leurs puissance est calculer à partir du cycle.
 - Les fonctions de **`game_logic.py`** sont regroupées par rôle : géométrie (`point_at`, `move`, `angle_towards`, `collides`), vie du joueur (`damage_player`, `heal_player`, `upgrade_player`), vagues et cycles (`start_next_wave`, `update_wave_manager`, `start_next_cycle`), joueur (`move_player`, `aim_player`, `shoot`) et monde (`update_projectiles`, `update_enemies`, `handle_collisions`). `update_playing` les appelle dans l’ordre à chaque image.
 
 ### Choix architecturaux
@@ -190,7 +190,7 @@ Redémarrer une partie consiste simplement à créer un nouvel objet `Game`.
 - **Les classes contiennent les données, les fonctions contiennent le comportement.** Les classes de `game_class.py` décrivent ce qu’est un vaisseau (ses statistiques) et les fonctions de `game_logic.py` décrivent ce qu’il fait. Cela permet de régler l’équilibrage sans risquer de casser la logique, et de travailler à deux en parallèle : l’un sur le contenu, l’autre sur la logique.
 - **Héritage de `Ship`.** Tous les vaisseaux partagent les mêmes attributs, définis une seule fois. Les sous-classes ne font que donner leurs valeurs. Le joueur et les ennemis sont traités par les mêmes fonctions (déplacement, collision, affichage).
 - **Le projectile copie les valeurs du tireur au moment du tir.** Une amélioration choisie plus tard ne modifie pas les projectiles déjà en vol, et la copie de la position évite que le projectile et le vaisseau partagent la même liste en mémoire.
-- **Les vagues contiennent directement les classes d’ennemis.** `spawn_wave` crée les ennemis à partir de ces classes et calcule leur puissance selon le cycle. La même fonction sert à afficher les statistiques des ennemis du cycle suivant sur l’écran de fin de cycle : la formule de difficulté n’existe qu’à un seul endroit.
+- **Les vagues contiennent directement les classes d’ennemis.** `scale_wave` crée les ennemis à partir de ces classes et calcule leur puissance selon le cycle. La même fonction sert à afficher les statistiques des ennemis du cycle suivant sur l’écran de fin de cycle : la formule de difficulté n’existe qu’à un seul endroit.
 - **Vie maximale suivie par la partie.** Comme les améliorations multiplient `health_point`, la vie maximale est multipliée du même facteur : « health up » à 50/100 donne 55/110.
 - **Score multiplié par le cycle.** Un ennemi rapporte son `score` multiplié par le numéro du cycle, car il est plus résistant.
 - **Déplacements en fonction du temps.** Les vitesses sont en pixels par seconde et multipliées par le temps écoulé depuis l’image précédente : le jeu va à la même vitesse sur tous les ordinateurs, contrairement au programme initial.
@@ -235,6 +235,6 @@ Redémarrer une partie consiste simplement à créer un nouvel objet `Game`.
 - **`is_player` et `is_enemy` répètent ce que dit déjà la classe** et peuvent se contredire : `Boss_Enemy` n’indiquait pas `is_enemy = True` au départ.
 - **Les ennemis portent des attributs qu’ils n’utilisent pas encore** (`attack_delay`, `projectile_amount`…), à `None`.
 - **La vie maximale est stockée dans `Game`** et non dans le vaisseau, parce que `Ship` n’a qu’un seul attribut de vie.
-- **La position donnée à `spawn_wave` est recalculée** au moment où l’ennemi apparaît, car le joueur a pu bouger entre la création de la vague et l’apparition de l’ennemi.
+- **La position donnée à `scale_wave` est recalculée** au moment où l’ennemi apparaît, car le joueur a pu bouger entre la création de la vague et l’apparition de l’ennemi.
 - **Les collisions testent chaque ennemi contre chaque projectile.** C’est suffisant pour le nombre d’ennemis actuel, mais deviendrait lent avec des centaines d’objets.
 - **Pas de tests automatisés** dans le dépôt : les vérifications ont été faites en jouant et avec des scripts de test non versionnés.
