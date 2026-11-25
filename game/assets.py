@@ -1,66 +1,56 @@
-"""Loads images, sounds, music and the font from the assets folder (credits in assets/CREDITS.md)."""
+"""Images, sounds, music and fonts from the assets folder (credits in assets/CREDITS.md)."""
 import os
 
 import pygame
 
+from .game_class import Basic_Enemy, Boss_Enemy, Elite_Enemy, Player
+
 ASSETS_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets")
 FONT_PATH = os.path.join(ASSETS_DIR, "fonts", "Orbitron.ttf")
+MUSIC_PATH = os.path.join(ASSETS_DIR, "music", "angel_eyes.ogg")
 
-IMAGE_FILES = {
-    "player": "player.png",
-    "basic_enemy": "basic_enemy.png",
-    "elite_enemy": "elite_enemy.png",
-    "boss_enemy": "boss_enemy.png",
+# Ship class -> image. Every image faces right (angle 0) and is already the size the ship has
+# when it is created (SPRITE_SCALE * size in rendering.py).
+SHIP_IMAGE_FILES = {
+    Player: "player.png",
+    Basic_Enemy: "basic_enemy.png",
+    Elite_Enemy: "elite_enemy.png",
+    Boss_Enemy: "boss_enemy.png",
 }
 SOUND_FILES = {
     "shoot": "shoot.ogg",
     "enemy_killed": "enemy_killed.ogg",
     "game_over": "game_over.ogg",
 }
+FONT_SIZES = {"small": 13, "normal": 18, "big": 44}
 SOUND_VOLUME = 0.4
-MUSIC_PATH = os.path.join(ASSETS_DIR, "music", "angel_eyes.ogg")
 MUSIC_VOLUME = 0.25         # quieter than the sound effects
-NEBULA_ALPHA = 110          # 0 = invisible, 255 = full brightness
-
-images = {}                 # name -> pygame.Surface, filled by load()
-sounds = {}                 # name -> pygame.mixer.Sound, filled by load() if audio works
-background = None           # stars + dimmed nebula, the size of the screen
 
 
 def load_image(file_name):
     return pygame.image.load(os.path.join(ASSETS_DIR, "images", file_name)).convert_alpha()
 
 
-def build_background(screen_size):
-    """Black sky with stars, and a dimmed nebula on the right as an accent."""
-    sky = pygame.Surface(screen_size)
-    sky.fill((0, 0, 0))
-    stars = load_image("stars.png")
-    for x in range(0, screen_size[0], stars.get_width()):
-        for y in range(0, screen_size[1], stars.get_height()):
-            sky.blit(stars, (x, y))
-    nebula = load_image("nebula.png")
-    nebula.set_alpha(NEBULA_ALPHA)
-    sky.blit(nebula, nebula.get_rect(midright=(screen_size[0] + 150, screen_size[1] // 2)))
-    return sky
+class Assets:
+    """Loads everything once, after the window is created, and starts the music (looping)."""
+    def __init__(self):
+        self.background = load_image("background.jpg")
+        self.projectile_image = load_image("projectile.png")
+        self.ship_images = {}
+        for ship_class, file_name in SHIP_IMAGE_FILES.items():
+            self.ship_images[ship_class] = load_image(file_name)
+        self.fonts = {}
+        for name, size in FONT_SIZES.items():
+            self.fonts[name] = pygame.font.Font(FONT_PATH, size)
+        self.sounds = {}
+        if pygame.mixer.get_init():     # no audio device: the game runs silently
+            for name, file_name in SOUND_FILES.items():
+                self.sounds[name] = pygame.mixer.Sound(os.path.join(ASSETS_DIR, "sounds", file_name))
+                self.sounds[name].set_volume(SOUND_VOLUME)
+            pygame.mixer.music.load(MUSIC_PATH)
+            pygame.mixer.music.set_volume(MUSIC_VOLUME)
+            pygame.mixer.music.play(-1)
 
-
-def load(screen_size):
-    """Call once, after the window is created. Also starts the music, looping."""
-    global background
-    for name, file_name in IMAGE_FILES.items():
-        images[name] = load_image(file_name)
-    background = build_background(screen_size)
-    if pygame.mixer.get_init():
-        for name, file_name in SOUND_FILES.items():
-            sounds[name] = pygame.mixer.Sound(os.path.join(ASSETS_DIR, "sounds", file_name))
-            sounds[name].set_volume(SOUND_VOLUME)
-        pygame.mixer.music.load(MUSIC_PATH)
-        pygame.mixer.music.set_volume(MUSIC_VOLUME)
-        pygame.mixer.music.play(-1)
-
-
-def play_sound(name):
-    """Does nothing if the sounds could not be loaded (no audio device)."""
-    if name in sounds:
-        sounds[name].play()
+    def play_sound(self, name):
+        if name in self.sounds:
+            self.sounds[name].play()
