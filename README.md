@@ -40,10 +40,9 @@ python main.py
 | `main.py` | Entry point: opens the window and runs the game loop |
 | `game/game_class.py` | Ships (`Ship` -> `Player`, `Basic_Enemy`, `Elite_Enemy`, `Boss_Enemy`) with their stats, `Projectile`, `UI` |
 | `game/game_content.py` | Waves, upgrade lists and their effects (`apply_upgrade`), wave spawning and cycle scaling (`scale_wave`) |
-| `game/game_state.py` | A game in progress: `WaveManager` (cycles, waves, enemy release) and `Game` (player actions, health, upgrades, movement, collisions), plus spawn ring, heal and projectile size settings |
+| `game/game_state.py` | A game in progress: `WaveManager` (cycles, waves, enemy release) and `Game` (player actions, health, upgrades, movement, collisions), plus spawn ring, heal and projectile size settings and geometry helpers (`point_at`, `move`, `angle_towards`, `collides`) |
 | `game/screens.py` | One class per screen (`Screen` -> `PlayingScreen`, `GameOverScreen`, `UpgradeScreen` -> `WaveUpgradeScreen`, `CycleSummaryScreen`): controls, screen changes and what each screen draws |
-| `game/rendering.py` | Drawing helpers shared by the screens: world, HUD, overlay, text |
-| `game/geometry.py` | Positions and angles: `point_at`, `move`, `angle_towards`, `collides` |
+| `game/rendering.py` | Drawing helpers shared by the screens: world, HUD, menus |
 | `game/assets.py` | `Assets`: loads the images, fonts, sounds and music from `assets/` |
 
 To tune the ships, edit their class in `game/game_class.py`. Waves, upgrades and scaling are in `game/game_content.py`.

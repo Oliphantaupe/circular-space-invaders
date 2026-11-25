@@ -8,12 +8,33 @@ import random
 
 from . import game_content
 from .game_class import Player, Projectile, UI
-from .geometry import angle_towards, collides, move, point_at
 
 SPAWN_RADIUS = 400          # enemies appear on a ring this far from the player
 SPAWN_DELAY = 0.5           # seconds between two enemies of a wave
 WAVE_END_HEAL = 0.20        # fraction of max health restored when a wave is cleared
 PROJECTILE_SIZE = 5         # projectile hitbox radius in pixels
+
+
+# --- Geometry: positions [x, y], angles in degrees (0 = right, 90 = down) ---
+
+def point_at(start, angle, distance):
+    """Position distance pixels away from start in the direction of angle."""
+    return [start[0] + math.cos(math.radians(angle)) * distance,
+            start[1] + math.sin(math.radians(angle)) * distance]
+
+
+def move(thing, angle, distance):
+    """Moves a ship or projectile."""
+    thing.position = point_at(thing.position, angle, distance)
+
+
+def angle_towards(start, target):
+    """Angle from position start to position target."""
+    return math.degrees(math.atan2(target[1] - start[1], target[0] - start[0]))
+
+
+def collides(first_position, first_size, second_position, second_size):
+    return math.dist(first_position, second_position) < first_size + second_size
 
 
 def origin():

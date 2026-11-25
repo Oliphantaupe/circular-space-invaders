@@ -124,8 +124,7 @@ class CycleSummaryScreen(UpgradeScreen):
         lines.append(("Choose a cycle upgrade:", fonts["normal"], rendering.TEXT_COLOR))
         for number, upgrade in enumerate(self.choices, start=1):
             lines.append((f"{number} - {upgrade.capitalize()}", fonts["normal"], rendering.UPGRADE_COLOR))
-        rendering.draw_overlay(surface)
-        rendering.draw_centered_lines(surface, lines, top=180)
+        rendering.draw_menu(surface, lines, top=180)
 
 
 class GameOverScreen(Screen):
@@ -139,5 +138,4 @@ class GameOverScreen(Screen):
         super().draw(surface)
         fonts = self.game.assets.fonts
         lines = [("GAME OVER", fonts["big"], (255, 90, 90)), ("Press R to restart", fonts["normal"], rendering.TEXT_COLOR)]
-        rendering.draw_overlay(surface)
-        rendering.draw_centered_lines(surface, lines, top=surface.get_rect().centery - 60)
+        rendering.draw_menu(surface, lines, top=surface.get_rect().centery - 60)

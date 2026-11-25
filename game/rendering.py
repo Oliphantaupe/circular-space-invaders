@@ -1,8 +1,7 @@
-"""Drawing helpers shared by the screens (screens.py): world, HUD, overlay and text."""
+"""Drawing helpers shared by the screens (screens.py): world, HUD and menus."""
 import pygame
 
-from .game_state import SPAWN_RADIUS
-from .geometry import point_at
+from .game_state import SPAWN_RADIUS, point_at
 
 TEXT_COLOR = (220, 220, 230)
 UPGRADE_COLOR = (255, 240, 120)
@@ -58,14 +57,11 @@ def draw_hud(surface, game):
     surface.blit(game.assets.fonts["normal"].render(hud, True, TEXT_COLOR), (12, 10))
 
 
-def draw_overlay(surface):
+def draw_menu(surface, lines, top):
+    """Darkens the screen, then draws lines (list of (text, font, color)) centered from y = top."""
     shade = pygame.Surface(surface.get_size(), pygame.SRCALPHA)
     shade.fill(OVERLAY_COLOR)
     surface.blit(shade, (0, 0))
-
-
-def draw_centered_lines(surface, lines, top):
-    """lines: list of (text, font, color), drawn centered horizontally from y = top."""
     center_x = surface.get_rect().centerx
     for text, font, color in lines:
         rendered = font.render(text, True, color)

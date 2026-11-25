@@ -33,10 +33,9 @@ Le code est réparti en modules, chacun avec une responsabilité :
 | `main.py` | Ouvre la fenêtre et fait tourner la boucle de jeu |
 | `game/game_class.py` | Classes des vaisseaux (`Ship` et ses sous-classes), `Projectile`, `UI` |
 | `game/game_content.py` | Contenu du jeu : vagues, listes d’améliorations, `apply_upgrade`, `scale_wave` |
-| `game/game_state.py` | Une partie en cours : `WaveManager` (cycles, vagues, apparition des ennemis) et `Game` (actions du joueur, vie, améliorations, déplacements, collisions) |
+| `game/game_state.py` | Une partie en cours : `WaveManager` (cycles, vagues, apparition des ennemis) et `Game` (actions du joueur, vie, améliorations, déplacements, collisions), fonctions de géométrie |
 | `game/screens.py` | Un écran par classe (`Screen` et ses sous-classes) : touches, passage d’un écran à l’autre, affichage propre à l’écran |
-| `game/rendering.py` | Fonctions de dessin communes aux écrans : monde, HUD, voile sombre, texte |
-| `game/geometry.py` | Positions et angles : `point_at`, `move`, `angle_towards`, `collides` |
+| `game/rendering.py` | Fonctions de dessin communes aux écrans : monde, HUD, menus |
 | `game/assets.py` | `Assets` : chargement des images, polices, sons et musique du dossier `assets/` (crédits dans `assets/CREDITS.md`) |
 
 ### Diagramme de classes
@@ -241,7 +240,7 @@ Charge une seule fois les images, polices, sons et musique au lancement. Les ima
 
 - **`Apply_upgrade`** : cette fonction prend en paramètre ; le vaisseau Joueur et l’id de l’amélioration à appliquer. Appeler cette fonction permet d’appliquer une amélioration, l’effets des améliorations sont définis directement à l’interieur de cette fonction, cela permet d’appliquer des améliorations potentiellement plus complexes avec des formules plutôt que d’être coincer à un simple ajout de statistique stockée dans une structure de donnée. Cette fonction ne retourne rien.
 - **`scale_wave`** : cette fonction retourne la liste des ennemis à faire apparaître selon le cycle. Elle prend en paramètre ; le contenu de la vague (dictionnaire, enemy_id : nombre d’ennemi), le cycle (valeur entière qui incrémente une fois toutes les vagues terminées) et la position d’apparition des ennemis, `random.choice` peut être utiliser pour choisir des positions d’apparition aléatoire à partir d’une liste. Le nombre d’ennemis et leurs puissance est calculer à partir du cycle.
-- Les méthodes de `Game`, `WaveManager` et des écrans sont décrites avec leur classe ci-dessus. Les seules fonctions hors classe sont les calculs de **`geometry.py`** (`point_at`, `move`, `angle_towards`, `collides`), qui ne dépendent d’aucun objet, et les fonctions de dessin communes de **`rendering.py`**.
+- Les méthodes de `Game`, `WaveManager` et des écrans sont décrites avec leur classe ci-dessus. Les seules fonctions hors classe sont les calculs de géométrie en début de **`game_state.py`** (`point_at`, `move`, `angle_towards`, `collides`), qui ne dépendent d’aucun objet, et les fonctions de dessin communes de **`rendering.py`**.
 
 ### Choix architecturaux
 
